@@ -1,455 +1,365 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ลงทะเบียน อสม. - สวีรู้ทันสโตรก</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300..900&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
-    <style>
-        /* Base Style & Accessibility for Elderly */
-        :root {
-            --base-font-size: 20px; 
-            --primary-color: #6f4e37;
-            --accent-color: #28a745;
-        }
-
-        body { 
-            font-family: "Noto Sans Thai", sans-serif; 
-            font-size: var(--base-font-size); 
-            background-color: #fff8f0; 
-            line-height: 1.6;
-        }
-
-        h1, h2, h3, h4, h5, h6 { font-weight: 700; color: #4a3b2a; }
-        
-        /* Card Styles */
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-            overflow: hidden;
-        }
-        .card-header {
-            background-color: var(--primary-color);
-            color: white;
-            font-size: 1.5rem;
-            padding: 1rem;
-            text-align: center;
-        }
-
-        /* Large Form Elements */
-        .form-label { font-size: 1.3rem; font-weight: 600; color: #333; }
-        .form-control, .form-select { 
-            font-size: 1.3rem; 
-            padding: 0.8rem; 
-            border-radius: 10px;
-            border: 2px solid #ccc;
-        }
-        .form-control:focus { border-color: var(--primary-color); box-shadow: 0 0 0 0.25rem rgba(111, 78, 55, 0.25); }
-
-        /* Buttons */
-        .btn-lg-custom {
-            font-size: 1.5rem;
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            width: 100%;
-            margin-top: 1rem;
-            font-weight: bold;
-        }
-        .btn-primary-custom { background-color: var(--primary-color); color: white; border: none; }
-        .btn-success-custom { background-color: var(--accent-color); color: white; border: none; }
-
-        /* Profile & Status */
-        .profile-img { 
-            width: 120px; height: 120px; 
-            border-radius: 50%; border: 5px solid white; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
-            margin: 0 auto; display: block;
-        }
-        .status-badge {
-            font-size: 1.2rem;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            display: inline-block;
-            margin-top: 10px;
-        }
-
-        /* Loading */
-        #loading {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            z-index: 2000;
-        }
-        .loading-text { font-size: 1.5rem; margin-top: 1rem; color: var(--primary-color); font-weight: bold; }
-        
-        .warn-text { color: #d9534f; font-weight: bold; font-size: 1.1rem; }
-    </style>
+  <base target="_top">
+  <title>IC Day Gamification Challenge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/sdk/2.2.0/liff.js"></script>
+  <style>
+    /* ใช้ CSS เพื่อออกแบบให้เป็น Gamification และโหลดเร็ว */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f8ff; /* สีฟ้าอ่อน ๆ */
+      color: #333;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #008080; /* สีเขียวเข้ม */
+      font-size: 1.8em;
+      margin-bottom: 20px;
+    }
+    .stamp-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .stamp-item {
+      padding: 15px;
+      border-radius: 10px;
+      background-color: #eee;
+      border: 2px solid #ccc;
+      transition: all 0.3s;
+    }
+    .stamp-item.complete {
+      background-color: #90ee90; /* สีเขียวอ่อน */
+      border-color: #3cb371; /* สีเขียว */
+      box-shadow: 0 0 10px rgba(60, 179, 113, 0.7);
+    }
+    .stamp-icon {
+      font-size: 2em;
+      display: block;
+      margin-bottom: 5px;
+    }
+    .rank-display {
+      margin-top: 30px;
+      padding: 15px;
+      border: 2px dashed #ff4500;
+      background-color: #fffacd;
+      border-radius: 10px;
+    }
+    .big-number {
+      font-size: 3em;
+      color: #ff4500;
+      font-weight: bold;
+    }
+    button {
+      background-color: #008080;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.3s;
+    }
+    button:hover:not(:disabled) {
+      background-color: #006400;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .hidden { display: none; }
+  </style>
 </head>
 <body>
 
-    <!-- Loading Screen -->
-    <div id="loading">
-        <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status"></div>
-        <div class="loading-text">กำลังโหลดข้อมูล...</div>
+<div class="container">
+  <h1 id="main-title">IC Day Challenge: สะสม 6 Stamp</h1>
+  
+  <div id="loading">กำลังโหลดข้อมูลและเชื่อมต่อ Line LIFF...</div>
+  <div id="app-content" class="hidden">
+    
+    <div id="registration-form" class="hidden">
+      <h2>ลงทะเบียนร่วมกิจกรรม</h2>
+      <p>กรุณากรอกข้อมูลเพื่อลงทะเบียนรับสิทธิ์เข้าร่วม</p>
+      <form id="regForm">
+        <input type="text" id="name" placeholder="ชื่อ-นามสกุล" required><br><br>
+        <input type="text" id="agency" placeholder="หน่วยงาน/โรงพยาบาล" required><br><br>
+        <select id="gender" required>
+            <option value="">เพศ</option>
+            <option value="Male">ชาย</option>
+            <option value="Female">หญิง</option>
+            <option value="Other">อื่น ๆ</option>
+        </select><br><br>
+        <input type="number" id="age" placeholder="อายุ" required><br><br>
+        <button type="submit">ยืนยันการลงทะเบียน</button>
+      </form>
     </div>
 
-    <div class="container py-4" id="app-container" style="display: none;">
-        
-        <!-- Header Image / Banner -->
-        <div class="text-center mb-4">
-            <h1 class="display-5 text-primary fw-bold">อสม. สวีรู้ทันสโตรก</h1>
-            <p class="lead">ระบบลงทะเบียนและจัดการข้อมูล อสม.</p>
+    <div id="activity-dashboard" class="hidden">
+      <h2>สถานะภารกิจ (Stamps)</h2>
+      <p>สวัสดีคุณ <span id="userNameDisplay">...</span></p>
+      <div class="stamp-grid" id="stampGrid">
         </div>
+      
+      <div id="completion-message" class="hidden">
+        <h3>🎉 ยินดีด้วย! คุณสะสมครบ 6 Stamp แล้ว!</h3>
+        <p>สามารถรับ E-Certificate ได้ที่นี่:</p>
+        <button id="certificateBtn" onclick="window.open(CERTIFICATE_URL)">รับ E-Certificate</button>
+      </div>
 
-        <!-- Section 1: Register Form (Show if not registered) -->
-        <div id="register-section" style="display: none;">
-            <div class="card">
-                <div class="card-header"><i class="bi bi-person-plus-fill"></i> ลงทะเบียน อสม. ใหม่</div>
-                <div class="card-body p-4">
-                    <form id="vhvForm">
-                        <div class="text-center mb-4">
-                            <img id="reg-profile-img" src="https://via.placeholder.com/120" class="profile-img mb-2">
-                            <h4 id="reg-display-name">Loading...</h4>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label">1. ชื่อ-นามสกุล (จริง)</label>
-                            <input type="text" class="form-control" id="vhvName" placeholder="เช่น นางสมศรี ใจดี" required>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label">2. เบอร์โทรศัพท์ (ที่ติดต่อได้)</label>
-                            <input type="tel" class="form-control" id="vhvPhone" pattern="[0-9]{10}" placeholder="08xxxxxxxx" required>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label">3. LINE ID (สำหรับให้ชาวบ้านแอด)</label>
-                            <input type="text" class="form-control" id="vhvLineId" placeholder="ถ้าไม่มีให้เว้นว่าง">
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label">4. พื้นที่รับผิดชอบ (เลือกได้มากกว่า 1)</label>
-                            <div class="text-muted small mb-2">*เลือกหมู่บ้านที่คุณดูแล</div>
-                            <select class="form-select" id="vhvArea" multiple style="height: 150px;" required>
-                                <!-- Options will be populated by JS -->
-                            </select>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label">5. ตำแหน่งบ้านของคุณ</label>
-                            <div class="d-grid gap-2">
-                                <button type="button" class="btn btn-outline-primary btn-lg" onclick="getLocation()">
-                                    <i class="bi bi-geo-alt-fill"></i> กดปุ่มนี้เพื่อปักหมุดบ้าน
-                                </button>
-                            </div>
-                            <input type="hidden" id="vhvCoords">
-                            <div id="location-status" class="mt-2 text-center text-muted fst-italic">ยังไม่ได้ปักหมุด (ถ้าไม่ได้อยู่ที่บ้าน ข้ามไปก่อนได้)</div>
-                            <div id="location-warn" class="warn-text mt-1 text-center" style="display:none;">
-                                <i class="bi bi-exclamation-triangle"></i> ท่านยังไม่ได้ปักหมุด (ข้อมูลจะไม่สมบูรณ์)
-                            </div>
-                        </div>
-
-                        <div class="form-check mb-4">
-                            <input class="form-check-input" type="checkbox" id="vhvPdpa" style="transform: scale(1.5); margin-right: 10px;" required>
-                            <label class="form-check-label" for="vhvPdpa">
-                                ข้าพเจ้ายินยอมเปิดเผยข้อมูล ชื่อและเบอร์โทร ให้กับประชาชนในพื้นที่ดูแลของข้าพเจ้า
-                            </label>
-                        </div>
-
-                        <button type="button" class="btn btn-primary-custom btn-lg-custom" onclick="submitRegistration()">
-                            บันทึกข้อมูล
-                        </button>
-                    </form>
-                </div>
-            </div>
+      <div class="rank-display">
+        <h3>🥇 อันดับ Posttest ปัจจุบัน</h3>
+        <p>คะแนนสูงสุดในโครงการคือ: <span id="topScoreDisplay">...</span></p>
+        <div id="myRankSection" class="hidden">
+            <p>อันดับของคุณคือ:</p>
+            <div class="big-number" id="myRankDisplay">...</div>
         </div>
-
-        <!-- Section 2: Dashboard (Show if registered) -->
-        <div id="dashboard-section" style="display: none;">
-            
-            <!-- Profile Card -->
-            <div class="card text-center bg-white">
-                <div class="card-body pt-5">
-                    <img id="dash-img" src="" class="profile-img" style="margin-top: -60px;">
-                    <h2 class="mt-3 fw-bold" id="dash-name">-</h2>
-                    <p class="text-muted fs-4" id="dash-area">-</p>
-                    <span class="status-badge bg-success text-white">ลงทะเบียนแล้ว</span>
-                    
-                    <hr>
-                    <div class="d-grid gap-3">
-                        <button class="btn btn-warning btn-lg fw-bold text-dark" onclick="editProfile()">
-                            <i class="bi bi-pencil-square"></i> แก้ไขข้อมูล / ปักหมุดใหม่
-                        </button>
-                        <button class="btn btn-success-custom btn-lg-custom" onclick="shareProfile()">
-                            <i class="bi bi-share-fill"></i> แชร์นามบัตร อสม. ให้ลูกบ้าน
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Exam Result Card -->
-            <div class="card">
-                <div class="card-header bg-info text-dark">
-                    <i class="bi bi-mortarboard-fill"></i> ผลการทดสอบความรู้
-                </div>
-                <div class="card-body text-center">
-                    <div id="exam-result-area">
-                        <h1 class="display-3 fw-bold mb-0" id="exam-score">0</h1>
-                        <p class="fs-4">คะแนนล่าสุด</p>
-                        <a href="https://liff.line.me/2005789397-ROQvjpYk" class="btn btn-outline-dark btn-lg w-100">
-                            ทำแบบทดสอบ (Pre/Post Test)
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Patient List -->
-            <div class="card">
-                <div class="card-header bg-danger text-white">
-                    <i class="bi bi-people-fill"></i> รายชื่อกลุ่มเสี่ยงในความดูแล
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush" id="patient-list">
-                        <!-- Patient Items -->
-                        <div class="text-center p-4 text-muted">กำลังโหลดรายชื่อ...</div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
+      </div>
     </div>
+  </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script>
-        // *** CONFIGURATION ***
-        
-        // 1. ใส่ URL จาก Google Apps Script (Deploy > Web App) ตรงนี้ครับ
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxHVZsUpxVc3R_XPjY1qMYx-yvTbiAkToaPoPGqioskMVP4KXkx7SwamMPQ-Gpe79ln/exec'; 
-        
-        // 2. ใส่ LIFF ID (ที่สร้างใหม่สำหรับหน้านี้)
-        const LIFF_ID = '2005789397-Z16cwFti'; 
+<script>
+  // Global variables
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYmw1YrTSTE7O-jUmuBIJi-lYvxMp16TISA0r6-iWX5-8KsjCztqdSF3PAejBT-D68/exec'; // **ต้องเปลี่ยน** URL ของ GAS ที่ Deploy
+  let USER_ID = '';
+  let STAMP_DATA = {};
+  const STAMP_LIST = [
+    { name: 'Register', title: 'ลงทะเบียน', icon: '👤', url: '#' },
+    { name: 'Pretest', title: 'ทำ Pretest', icon: '📝', url: 'URL_TO_PRETEST_FORM' }, // **ต้องเปลี่ยน**
+    { name: 'Check-in Handwash', title: 'ฐานล้างมือ', icon: '🧼', url: '#' }, // **สามารถเพิ่มปุ่มกดใน HTML หรือใช้ QR Code สแกนบันทึกก็ได้**
+    { name: 'Check-in PPE', title: 'ฐาน PPE', icon: '🧤', url: '#' }, // **สามารถเพิ่มปุ่มกดใน HTML หรือใช้ QR Code สแกนบันทึกก็ได้**
+    { name: 'Posttest', title: 'ทำ Posttest', icon: '💯', url: 'URL_TO_POSTTEST_FORM' }, // **ต้องเปลี่ยน**
+    { name: 'Evaluation', title: 'ประเมินโครงการ', icon: '⭐', url: 'URL_TO_EVALUATION_FORM' } // **ต้องเปลี่ยน**
+  ];
 
-        let userProfile = null;
-        let vhvData = null;
+  const CERTIFICATE_URL = 'URL_TO_YOUR_PDF_CERTIFICATE_TEMPLATE'; // **ต้องเปลี่ยน**
 
-        async function main() {
-            try {
-                await liff.init({ liffId: LIFF_ID });
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                    return;
-                }
-                userProfile = await liff.getProfile();
-                loadInitialData();
-            } catch (err) {
-                alert("เกิดข้อผิดพลาด LIFF: " + err.message);
-            }
+  // ********** LIFF Initialization **********
+  function initializeLiff() {
+    liff.init({ liffId: '2008690634-O4vlZdND' }) // **ต้องเปลี่ยน** LIFF ID ของคุณ
+      .then(() => {
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
         }
+        USER_ID = liff.getDecodedIDToken().sub;
+        console.log('LIFF initialized. User ID:', USER_ID);
+        document.getElementById('loading').textContent = 'เชื่อมต่อ Line สำเร็จ... กำลังตรวจสอบสถานะ';
+        checkStatus();
+      })
+      .catch((err) => {
+        console.error('LIFF Initialization failed', err);
+        document.getElementById('loading').textContent = 'Error: ไม่สามารถเชื่อมต่อ LIFF ได้ กรุณาลองใหม่ หรือเปิดผ่าน Line Browser';
+      });
+  }
 
-        function loadInitialData() {
-            if(!WEB_APP_URL) { alert("กรุณาใส่ WEB_APP_URL ใน Code ก่อนครับ"); return; }
-            
-            fetch(`${WEB_APP_URL}?action=getVhvPageData&userId=${userProfile.userId}`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('app-container').style.display = 'block';
+  // ********** GAS API Communication **********
+  function sendDataToGas(action, data) {
+    data.action = action;
+    data.userId = USER_ID;
+    
+    return fetch(GAS_URL, {
+      method: 'POST',
+      body: new URLSearchParams(data),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+    .then(res => res.json())
+    .catch(err => {
+      console.error('GAS Communication Error:', err);
+      return { status: 'error', message: 'เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์' };
+    });
+  }
 
-                    // Populate Area Dropdown
-                    const areaSelect = document.getElementById('vhvArea');
-                    data.availableAreas.forEach(area => {
-                        const opt = document.createElement('option');
-                        opt.value = area;
-                        opt.text = area;
-                        areaSelect.add(opt);
-                    });
+  // ********** Status Management **********
+  async function checkStatus() {
+    const result = await sendDataToGas('getStatus', {});
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('app-content').classList.remove('hidden');
 
-                    if (data.isVhv) {
-                        // Show Dashboard
-                        vhvData = data.vhvProfile;
-                        renderDashboard(data);
-                    } else {
-                        // Show Register Form
-                        document.getElementById('register-section').style.display = 'block';
-                        document.getElementById('reg-profile-img').src = userProfile.pictureUrl;
-                        document.getElementById('reg-display-name').innerText = userProfile.displayName;
-                    }
-                })
-                .catch(err => alert("โหลดข้อมูลไม่สำเร็จ: " + err));
-        }
+    if (result.status === 'success' && result.registered) {
+      document.getElementById('registration-form').classList.add('hidden');
+      document.getElementById('activity-dashboard').classList.remove('hidden');
+      STAMP_DATA = result.stamps;
+      
+      // Get user name from LIFF or GAS (for simplicity here, let's assume we fetch profile)
+      let profile = {};
+      if (liff.isLoggedIn()) {
+        profile = await liff.getProfile();
+        document.getElementById('userNameDisplay').textContent = profile.displayName;
+      }
 
-        function renderDashboard(data) {
-            document.getElementById('dashboard-section').style.display = 'block';
-            document.getElementById('register-section').style.display = 'none';
+      renderStamps();
+      renderRank(result.rankInfo);
 
-            const p = data.vhvProfile;
-            document.getElementById('dash-img').src = p.profilePicture || userProfile.pictureUrl;
-            document.getElementById('dash-name').innerText = p.name;
-            document.getElementById('dash-area').innerText = p.area;
+    } else if (result.status === 'success' && !result.registered) {
+      // User not registered, show form
+      document.getElementById('registration-form').classList.remove('hidden');
+      document.getElementById('activity-dashboard').classList.add('hidden');
+      
+      // Prefill name if available from LIFF (optional)
+      if (liff.isLoggedIn()) {
+          const profile = await liff.getProfile();
+          // The name fetched from LIFF is typically the display name, but we need the full name from the user.
+          // document.getElementById('name').value = profile.displayName; 
+      }
 
-            // Exam Score
-            const score = data.examStats ? data.examStats.maxScore : 0;
-            document.getElementById('exam-score').innerText = score;
+    } else {
+       alert('ไม่สามารถโหลดสถานะได้: ' + result.message);
+    }
+  }
 
-            // Patient List
-            const listContainer = document.getElementById('patient-list');
-            listContainer.innerHTML = '';
-            
-            if (data.vhvPatientList && data.vhvPatientList.length > 0) {
-                data.vhvPatientList.forEach(pt => {
-                    const distText = pt.distanceFromVhv_km ? `<span class="badge bg-warning text-dark">${pt.distanceFromVhv_km} กม.</span>` : '';
-                    const riskClass = getRiskClass(pt.thai_cv_risk_score);
-                    
-                    const html = `
-                        <div class="list-group-item p-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5 class="mb-1 fw-bold">${pt.name}</h5>
-                                    <div class="text-muted">${pt.telephone}</div>
-                                    <div class="small mt-1">ความเสี่ยง: <span class="${riskClass} fw-bold">${pt.thai_cv_risk_score}%</span></div>
-                                </div>
-                                <div class="text-end">
-                                    ${distText}
-                                    <a href="tel:${pt.telephone}" class="btn btn-success btn-lg mt-2 rounded-circle"><i class="bi bi-telephone-fill"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    listContainer.insertAdjacentHTML('beforeend', html);
-                });
-            } else {
-                listContainer.innerHTML = '<div class="p-4 text-center text-muted fs-5">ยังไม่มีรายชื่อกลุ่มเสี่ยงในพื้นที่ดูแลของท่าน</div>';
-            }
-        }
+  // ********** Registration Handler **********
+  document.getElementById('regForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const agency = document.getElementById('agency').value;
+    const gender = document.getElementById('gender').value;
+    const age = document.getElementById('age').value;
 
-        function getLocation() {
-            if(!confirm("กรุณากดยืนยันเฉพาะเมื่อท่านอยู่ที่บ้านพักของท่านแล้วเท่านั้น")) return;
-            
-            document.getElementById('location-status').innerText = "กำลังระบุพิกัด...";
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const coords = `${pos.coords.latitude},${pos.coords.longitude}`;
-                    document.getElementById('vhvCoords').value = coords;
-                    document.getElementById('location-status').innerText = "✅ บันทึกพิกัดเรียบร้อย";
-                    document.getElementById('location-status').classList.add('text-success');
-                    document.getElementById('location-warn').style.display = 'none';
-                },
-                (err) => {
-                    alert("ไม่สามารถระบุพิกัดได้: " + err.message);
-                    document.getElementById('location-status').innerText = "ระบุพิกัดล้มเหลว";
-                },
-                { enableHighAccuracy: true }
-            );
-        }
+    const data = { name, agency, gender, age };
 
-        function submitRegistration() {
-            const name = document.getElementById('vhvName').value;
-            const phone = document.getElementById('vhvPhone').value;
-            const lineId = document.getElementById('vhvLineId').value;
-            const pdpa = document.getElementById('vhvPdpa').checked;
-            
-            const areaSelect = document.getElementById('vhvArea');
-            const selectedAreas = Array.from(areaSelect.selectedOptions).map(opt => opt.value);
-            const coords = document.getElementById('vhvCoords').value;
+    const result = await sendDataToGas('register', data);
+    
+    if (result.status === 'success') {
+      alert('ลงทะเบียนสำเร็จ! เริ่มกิจกรรมได้เลย');
+      checkStatus(); // Reload status and show dashboard
+    } else {
+      alert('ลงทะเบียนไม่สำเร็จ: ' + result.message);
+    }
+  });
 
-            if (!name || !phone || selectedAreas.length === 0 || !pdpa) {
-                alert("กรุณากรอกข้อมูลให้ครบถ้วน");
-                return;
-            }
 
-            if (!coords) {
-                if(!confirm("คำเตือน: ท่านยังไม่ได้ปักหมุดบ้าน ข้อมูลจะไม่สมบูรณ์ \nต้องการบันทึกโดยไม่ปักหมุดใช่หรือไม่?")) return;
-            }
+  // ********** Rendering and UI Updates **********
+  function renderStamps() {
+    const grid = document.getElementById('stampGrid');
+    grid.innerHTML = ''; // Clear previous content
 
-            document.getElementById('loading').style.display = 'flex';
-            document.querySelector('.loading-text').innerText = 'กำลังบันทึกข้อมูล...';
+    let allComplete = true;
 
-            const payload = {
-                action: 'registerVhvNew',
-                data: {
-                    userId: userProfile.userId,
-                    displayName: userProfile.displayName,
-                    profilePicture: userProfile.pictureUrl,
-                    name: name,
-                    phone: phone,
-                    line_id: lineId,
-                    areas: selectedAreas,
-                    pdpa: pdpa ? "ยินยอม" : "ไม่ยินยอม",
-                    asm_home: coords
-                }
-            };
+    STAMP_LIST.forEach(stamp => {
+      const isComplete = STAMP_DATA[stamp.name] || false;
+      const item = document.createElement('div');
+      item.className = 'stamp-item' + (isComplete ? ' complete' : '');
+      item.innerHTML = `<span class="stamp-icon">${isComplete ? '✅' : stamp.icon}</span>${stamp.title}`;
 
-            fetch(WEB_APP_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(payload)
-            })
-            .then(() => {
-                alert("ลงทะเบียนสำเร็จ!");
-                window.location.href = "https://liff.line.me/2005789397-ROQvjpYk";
-            })
-            .catch(err => {
-                alert("Error: " + err);
-                location.reload();
-            });
-        }
+      // Logic for stamping (e.g., Check-in bases)
+      if (stamp.name.startsWith('Check-in') && !isComplete) {
+          const btn = document.createElement('button');
+          btn.textContent = 'เช็คอิน';
+          btn.onclick = () => handleCheckIn(stamp.name);
+          item.appendChild(btn);
+      } 
+      // Logic for external forms (e.g., Pretest, Posttest, Evaluation)
+      else if (stamp.url !== '#' && !isComplete) {
+          const btn = document.createElement('button');
+          btn.textContent = 'เริ่มทำ';
+          btn.onclick = () => window.open(stamp.url);
+          item.appendChild(btn);
+      }
+      // Note: You must ensure that after a user completes an external Google Form (Pretest, Posttest, Evaluation),
+      // the Posttest submission function *must* also be triggered, either manually here (for the purpose of this demo)
+      // or automatically via another GAS endpoint the form submission triggers.
+      // For this demo, we'll rely on the user manually submitting the posttest *score* for Stamp 5.
+      else if (stamp.name === 'Posttest' && !isComplete) {
+           const btn = document.createElement('button');
+           btn.textContent = 'บันทึกคะแนน (Demo)';
+           btn.onclick = () => submitPostTestDemo();
+           item.appendChild(btn);
+      }
+      
+      grid.appendChild(item);
+      if (!isComplete) {
+          allComplete = false;
+      }
+    });
 
-        function editProfile() {
-             document.getElementById('dashboard-section').style.display = 'none';
-             document.getElementById('register-section').style.display = 'block';
-             if(vhvData) {
-                 document.getElementById('vhvName').value = vhvData.name;
-                 document.getElementById('vhvPhone').value = vhvData.phone.replace(/'/g, '');
-                 document.getElementById('vhvLineId').value = vhvData.line_id;
-             }
-        }
+    if (allComplete) {
+        document.getElementById('completion-message').classList.remove('hidden');
+    } else {
+        document.getElementById('completion-message').classList.add('hidden');
+    }
+  }
 
-        // *** ฟังก์ชันแชร์ (ปรับปรุงใหม่: ไปดึง JSON จาก GAS) ***
-        async function shareProfile() {
-            if (!liff.isApiAvailable('shareTargetPicker')) {
-                alert("อุปกรณ์นี้ หรือ LINE Version นี้ไม่รองรับการแชร์ (กรุณาอัปเดต LINE)");
-                return;
-            }
-            
-            document.getElementById('loading').style.display = 'flex';
-            document.querySelector('.loading-text').innerText = 'กำลังสร้างนามบัตร...';
+  function renderRank(rankInfo) {
+    if (!rankInfo || !rankInfo.userRank) {
+        // Posttest not done yet
+        document.getElementById('topScoreDisplay').textContent = rankInfo.topRankScore ? `${rankInfo.topRankScore} คะแนน` : 'ยังไม่มีข้อมูล';
+        document.getElementById('myRankSection').classList.add('hidden');
+        return;
+    }
+    
+    document.getElementById('topScoreDisplay').textContent = `${rankInfo.topRankScore} คะแนน`;
+    document.getElementById('myRankDisplay').textContent = `#${rankInfo.userRank}`;
+    document.getElementById('myRankSection').classList.remove('hidden');
+    
+    // Highlight if the user is rank 1
+    if (rankInfo.userRank === 1) {
+        document.getElementById('myRankDisplay').style.color = 'gold';
+        document.getElementById('myRankDisplay').style.fontSize = '4em';
+    } else {
+         document.getElementById('myRankDisplay').style.color = '#ff4500';
+         document.getElementById('myRankDisplay').style.fontSize = '3em';
+    }
+  }
 
-            try {
-                // 1. เรียก GAS ให้สร้าง Flex Message มาให้
-                const response = await fetch(`${WEB_APP_URL}?action=getShareCard&userId=${userProfile.userId}`);
-                const data = await response.json();
-                
-                document.getElementById('loading').style.display = 'none';
+  // ********** Stamp Handlers **********
+  async function handleCheckIn(stampName) {
+      if (STAMP_DATA[stampName]) {
+          alert('คุณทำภารกิจนี้ไปแล้ว!');
+          return;
+      }
+      
+      const result = await sendDataToGas('recordStamp', { stampName });
+      
+      if (result.status === 'success') {
+          alert(`เช็คอิน ${stampName.replace('Check-in', '')} สำเร็จ!`);
+          checkStatus(); // Refresh status
+      } else {
+          alert('เช็คอินไม่สำเร็จ: ' + result.message);
+      }
+  }
+  
+  // DEMO: Function to simulate Posttest submission (in a real app, this should come from a form submit handler)
+  async function submitPostTestDemo() {
+      // **In a real scenario, this data (score, time) would come from the posttest form submission**
+      const score = parseInt(prompt("DEMO: กรุณากรอกคะแนน Posttest (0-100):"));
+      const timeTakenSeconds = parseFloat(prompt("DEMO: กรุณากรอกเวลาที่ใช้ทำ (วินาที):"));
+      const name = document.getElementById('userNameDisplay').textContent;
+      
+      if (isNaN(score) || isNaN(timeTakenSeconds)) {
+          alert('ข้อมูลไม่ถูกต้อง');
+          return;
+      }
+      
+      const data = { score, timeTakenSeconds, name };
+      const result = await sendDataToGas('submitPostTest', data);
+      
+      if (result.status === 'success') {
+          alert(`บันทึกคะแนน Posttest สำเร็จ! อันดับของคุณ: #${result.userRank}`);
+          checkStatus(); // Refresh status and rank
+      } else {
+          alert('บันทึกคะแนนไม่สำเร็จ: ' + result.message);
+      }
+  }
 
-                if (data.success && data.flex) {
-                    // 2. สั่ง LIFF ให้แชร์ข้อความที่ได้มา
-                    const res = await liff.shareTargetPicker([data.flex]);
-                    if (res) alert("แชร์นามบัตรเรียบร้อย!");
-                } else {
-                    alert("เกิดข้อผิดพลาด: " + (data.message || "ไม่ได้รับข้อมูล Flex Message"));
-                }
-            } catch (err) {
-                document.getElementById('loading').style.display = 'none';
-                console.error(err);
-                alert("การแชร์ล้มเหลว: " + err.message);
-            }
-        }
 
-        function getRiskClass(score) {
-            if(score >= 30) return 'text-danger';
-            if(score >= 20) return 'text-warning';
-            return 'text-success';
-        }
-
-        main();
-    </script>
+  // ********** Start Application **********
+  initializeLiff();
+</script>
 </body>
 </html>
