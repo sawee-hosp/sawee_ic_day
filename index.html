@@ -41,15 +41,19 @@
         body { font-family: 'Noto Sans Thai', sans-serif; background-color: #000000; color: #FFFFFF; }
         .modal { transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; }
         body.modal-active { overflow-x: hidden; overflow-y: visible !important; }
+        
+        /* Unified Loading Overlay */
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000000; z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; color: #00FFFF;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; color: #00FFFF;
         }
         .spinner {
             border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #00FFFF;
             border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; box-shadow: 0 0 15px #00FFFF;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
         .text-glow { text-shadow: 0 0 5px currentColor; }
         .text-glow-strong { text-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
         ::-webkit-scrollbar { width: 8px; }
@@ -57,35 +61,16 @@
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         .quiz-radio, .eval-radio { width: 1.5rem; height: 1.5rem; accent-color: #00FFFF; cursor: pointer; }
         
-        /* Virus Glitch Animation */
-        @keyframes virus-glitch {
-            0% { transform: translate(0,0); color: #00FFFF; text-shadow: 2px 2px 0px #FF00FF; }
-            20% { transform: translate(-2px,2px); color: #39FF14; text-shadow: -2px 2px 0px #FFFF00; }
-            40% { transform: translate(2px,-2px); color: #FFFF00; text-shadow: 2px -2px 0px #00FFFF; }
-            60% { transform: translate(-2px,-2px); color: #FF00FF; text-shadow: -2px -2px 0px #39FF14; }
-            80% { transform: translate(2px,2px); color: #00FFFF; text-shadow: 2px 2px 0px #FF00FF; }
-            100% { transform: translate(0,0); color: #00FFFF; text-shadow: 2px 2px 0px #FF00FF; }
-        }
-        .virus-text {
-            animation: virus-glitch 0.4s infinite steps(4);
-            display: inline-block;
-        }
-        
-        /* Bouncy Animation for Stamps */
         @keyframes gentle-bounce {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
         .stamp-bounce { animation: gentle-bounce 2s infinite ease-in-out; }
         
-        /* Agenda Highlight Row */
         .agenda-active {
-            background-color: #00FFFF !important;
-            color: black !important;
-            box-shadow: 0 0 15px #00FFFF;
-            border-color: #FFFFFF !important;
-            transform: scale(1.02);
-            font-weight: bold;
+            background-color: #00FFFF !important; color: black !important;
+            box-shadow: 0 0 15px #00FFFF; border-color: #FFFFFF !important;
+            transform: scale(1.02); font-weight: bold;
         }
     </style>
 </head>
@@ -94,7 +79,7 @@
     <!-- Loading -->
     <div id="loading-overlay">
         <div class="spinner mb-4"></div>
-        <p class="text-neon-teal font-medium tracking-wider text-glow animate-pulse">LOADING SYSTEM...</p>
+        <p class="text-neon-teal font-medium tracking-wider text-glow animate-pulse">LOADING...</p>
     </div>
 
     <!-- Main App -->
@@ -105,9 +90,9 @@
             <div class="absolute inset-0 bg-gradient-to-b from-teal-900/20 to-black/80 pointer-events-none"></div>
             
             <div class="relative z-10">
-                <!-- Title with Virus Effect -->
+                <!-- Title: Simple Neon Blue -->
                 <div class="text-center mb-4">
-                    <h1 class="text-4xl font-black tracking-widest virus-text">Sawee IC Day 2025</h1>
+                    <h1 class="text-3xl font-bold tracking-widest text-neon-teal text-glow truncate">Sawee IC Day 2025</h1>
                 </div>
 
                 <!-- User Info -->
@@ -239,8 +224,9 @@
         <div class="space-y-6">
             <div class="text-center border-b border-gray-800 pb-4">
                 <h3 class="text-2xl font-bold text-neon-yellow">กำหนดการอบรม</h3>
+                <p class="text-sm text-gray-400 mt-2">รุ่นที่ 1: 16 ธันวาคม 2568</p>
+                <p class="text-sm text-gray-400">รุ่นที่ 2: 18 ธันวาคม 2568</p>
             </div>
-            <!-- Agenda List Generated via JS -->
             <div id="agenda-list" class="space-y-4 text-left"></div>
         </div>
     </template>
@@ -284,8 +270,19 @@
             { time: "15:00 - 16:00", title: "ทำแบบทดสอบหลังอบรม (Post-test)" }
         ];
 
-        let userProfile = null, userData = {}, userMissionStatus = [0,0,0,0,0,0];
+        let userProfile = null, userData = {}, userMissionStatus = [0,0,0,0,0,0], quizScores = { pre: null, post: null };
         let quizQuestions = [], currentTestType = null, startTime = null, timerInterval = null, currentModalMission = null;
+
+        // Custom Loading Function
+        function showLoading(show, msg="LOADING...") {
+             const ol = document.getElementById('loading-overlay');
+             if(show) { 
+                 ol.style.display='flex'; 
+                 ol.querySelector('p').innerText=msg; 
+             } else { 
+                 ol.style.display='none'; 
+             }
+        }
 
         async function main() {
             renderStamps(true);
@@ -293,10 +290,8 @@
                 await liff.init({ liffId: LIFF_ID });
                 if (!liff.isLoggedIn()) { liff.login(); return; }
                 userProfile = await liff.getProfile();
-                
-                // Safe UI Update
-                document.getElementById('loading-overlay').style.display = 'none';
-                updateProfileUI(); // Only call this after profile is loaded and DOM is ready
+                showLoading(false);
+                updateProfileUI();
 
                 const p = new URLSearchParams(window.location.search);
                 if (p.get('action') === 'complete' && p.get('mission')) {
@@ -306,8 +301,8 @@
                 await fetchUserStatus();
             } catch (e) {
                 console.error(e);
+                showLoading(false);
                 Swal.fire({title:'Error', text:e.message, icon:'error', background:'#000', color:'#fff'});
-                document.getElementById('loading-overlay').style.display = 'none';
             }
         }
 
@@ -322,6 +317,7 @@
                 if (d.status === 'success') {
                     userMissionStatus = d.data.missions;
                     userData = d.data.userInfo || {};
+                    quizScores = d.data.scores || { pre: null, post: null };
                     updateProfileUI();
                     renderStamps(false);
                     checkCertificateStatus();
@@ -330,17 +326,18 @@
         }
 
         async function markMissionComplete(mid) {
-            Swal.fire({title: 'กำลังบันทึก...', didOpen:()=>Swal.showLoading(), background:'#111', color:'#fff'});
+            showLoading(true, "กำลังบันทึก...");
             try {
                 const d = await callGAS({ action: 'completeMission', userId: userProfile.userId, missionId: mid });
                 if (d.status === 'success') {
                     userMissionStatus = d.data.missions;
                     renderStamps(false);
                     checkCertificateStatus();
+                    showLoading(false);
                     Swal.fire({icon: 'success', title: 'สำเร็จ!', background: '#111', color: '#fff', timer: 1500, showConfirmButton: false});
                     closeAllModals();
                 }
-            } catch (e) { Swal.fire('Error', 'Save failed', 'error'); }
+            } catch (e) { showLoading(false); Swal.fire('Error', 'Save failed', 'error'); }
         }
 
         function renderStamps(isSkeleton) {
@@ -362,13 +359,11 @@
 
         function updateProfileUI() {
             if (!userProfile) return;
-            
             const imgEl = document.getElementById('user-img');
             const nameEl = document.getElementById('user-name');
             const deptEl = document.getElementById('user-dept');
             const infoEl = document.getElementById('user-info');
             
-            // Check if elements exist to prevent TypeError
             if (imgEl && nameEl && deptEl && infoEl) {
                 imgEl.src = userProfile.pictureUrl;
                 nameEl.innerText = (userData.name && userData.title) ? `${userData.title}${userData.name}` : userProfile.displayName;
@@ -391,10 +386,14 @@
             currentModalMission = id;
             if (id === 1) openRegisModal();
             else if (id === 2) {
-                // Pre-test
                 if(userMissionStatus[0] == 1) {
                     if(!isCompleted) openQuizModal('Pretest'); 
-                    else Swal.fire({title:'ทำแบบทดสอบแล้ว', icon:'info', background:'#111', color:'#fff', timer:1500});
+                    else {
+                         // Show score if available
+                         let msg = 'ทำแบบทดสอบแล้ว';
+                         if(quizScores.pre) msg = `คะแนน: ${quizScores.pre.score}/20`;
+                         Swal.fire({title:'Pre-test Complete', text: msg, icon:'info', background:'#111', color:'#fff'});
+                    }
                 }
                 else showLockAlert(1);
             }
@@ -403,10 +402,13 @@
                 else Swal.fire({title:'ภารกิจสำเร็จแล้ว', icon:'success', background:'#111', color:'#fff', timer:1000, showConfirmButton:false});
             }
             else if (id === 5) {
-                // Lock Logic: Needs Mission 2 (Pre-test) done
                 if(userMissionStatus[1] == 1) {
                     if(!isCompleted) openQuizModal('Posttest');
-                    else Swal.fire({title:'สอบเสร็จแล้ว', icon:'success', background:'#111', color:'#fff', timer:1500});
+                    else {
+                         let msg = 'ทำแบบทดสอบแล้ว';
+                         if(quizScores.post) msg = `คะแนน: ${quizScores.post.score}/20\nเวลา: ${formatTime(quizScores.post.time)}`;
+                         Swal.fire({title:'Post-test Complete', text: msg, icon:'info', background:'#111', color:'#fff'});
+                    }
                 }
                 else showLockAlert(2);
             }
@@ -425,7 +427,6 @@
             deptGroup1.forEach(d => s.add(new Option(d, d)));
             deptGroup2.forEach(d => s.add(new Option(d, d)));
             
-            // Auto-select round based on date
             const today = new Date().getDate();
             const rSelect = tpl.querySelector('#input-round');
             if(today === 16) rSelect.value = "รุ่น 16 ธ.ค.";
@@ -448,19 +449,17 @@
             const tpl = document.getElementById('agenda-template').content.cloneNode(true);
             const list = tpl.getElementById('agenda-list');
             
-            // Time Check Logic
             const now = new Date();
             const currentHour = now.getHours();
             const currentMin = now.getMinutes();
             const currentTimeVal = currentHour * 60 + currentMin;
 
             agendaData.forEach(item => {
-                const times = item.time.split(' - '); // "08:00", "08:30"
+                const times = item.time.split(' - '); 
                 const [startH, startM] = times[0].split(':').map(Number);
                 const [endH, endM] = times[1].split(':').map(Number);
                 const startVal = startH * 60 + startM;
                 const endVal = endH * 60 + endM;
-
                 const isActive = currentTimeVal >= startVal && currentTimeVal < endVal;
                 
                 const div = document.createElement('div');
@@ -488,13 +487,13 @@
 
         async function openQuizModal(type) {
             currentTestType = type;
-            Swal.fire({didOpen: () => Swal.showLoading(), background: '#111'});
+            showLoading(true, "LOADING QUIZ...");
             if (quizQuestions.length === 0) {
                 let d = await callGAS({ action: 'getQuestions' });
                 if(d.status === 'success') quizQuestions = d.data;
-                else { Swal.fire('Error', 'Load failed', 'error'); return; }
+                else { showLoading(false); Swal.fire('Error', 'Load failed', 'error'); return; }
             }
-            Swal.close();
+            showLoading(false);
             const modal = document.getElementById('modal-template');
             document.getElementById('modal-title').innerText = type === 'Pretest' ? 'Pre-test' : 'Post-test';
             const body = document.getElementById('modal-body');
@@ -502,7 +501,6 @@
 
             if (type === 'Posttest') {
                 const intro = document.getElementById('posttest-intro-template').content.cloneNode(true);
-                // No Name needed in intro per request
                 body.appendChild(intro);
             } else {
                 renderQuizForm(body, false);
@@ -535,7 +533,7 @@
         async function submitRegistration() {
             const f = document.getElementById('regis-form');
             if (!f.checkValidity()) { f.reportValidity(); return; }
-            Swal.fire({didOpen:()=>Swal.showLoading(), background:'#111'});
+            showLoading(true, "SAVING...");
             const fd = new FormData(f);
             const pl = {
                 action:'register', userId:userProfile.userId, displayName:userProfile.displayName, pictureProfile:userProfile.pictureUrl,
@@ -543,12 +541,11 @@
             };
             const d = await callGAS(pl);
             if(d.status==='success') {
-                userData = pl; 
-                // Don't overwrite userMissionStatus blindly, as GAS might return updated missions
-                userMissionStatus = d.data.missions; 
-                updateProfileUI(); renderStamps(false); closeAllModals();
+                userData = pl; userMissionStatus = d.data.missions; 
+                updateProfileUI(); renderStamps(false); closeAllModals(); showLoading(false);
                 Swal.fire({icon:'success', title:'บันทึกเรียบร้อย', background:'#111', color:'#fff', timer:1500, showConfirmButton:false});
             } else {
+                 showLoading(false);
                  Swal.fire({icon:'error', title:'Error', text: d.message, background:'#111', color:'#fff'});
             }
         }
@@ -558,13 +555,12 @@
             if(!f.checkValidity()) { f.reportValidity(); return; }
             if(timerInterval) clearInterval(timerInterval);
             
-            Swal.fire({didOpen:()=>Swal.showLoading(), background:'#111'});
+            showLoading(true, "SUBMITTING...");
             const fd = new FormData(f);
             let score=0, wrong=[];
             quizQuestions.forEach(q => { if(fd.get(`q_${q.ID}`) === q.Correct_Ref) score++; else wrong.push(q.ID); });
             
             let dur = currentTestType === 'Posttest' ? (performance.now()-startTime)/1000 : 0;
-            // Round is taken from userData for posttest, or from form if we had a selector (which we removed)
             const pl = {
                 action:'submitTest', userId:userProfile.userId, displayName:userProfile.displayName, 
                 round:userData.round || "N/A", type:currentTestType, score:score, duration_sec:dur, wrong_answer:wrong.join(',')
@@ -572,7 +568,10 @@
             const d = await callGAS(pl);
             
             if(d.status==='success') {
-                userMissionStatus=d.data.missions; renderStamps(false);
+                userMissionStatus=d.data.missions; 
+                quizScores = d.data.scores; // Update local scores
+                renderStamps(false);
+                showLoading(false);
                 if(currentTestType==='Pretest') {
                     closeAllModals(); Swal.fire({title:`ได้ ${score}/20 คะแนน`, icon:'success', background:'#111', color:'#fff'});
                 } else {
@@ -594,8 +593,6 @@
             const rDisplay = document.getElementById('rank-display');
             document.getElementById('ranking-result').classList.remove('hidden');
             document.getElementById('ranking-btn').innerText = "กำลังคำนวณ...";
-            
-            // Random shuffle effect
             let shuffle = setInterval(() => { rDisplay.innerText = Math.floor(Math.random()*100)+1; }, 50);
 
             try {
@@ -616,33 +613,31 @@
             let ok=true; for(let i=1;i<=10;i++) if(!fd.get(`q${i}`)) ok=false;
             if(!ok) { Swal.fire({icon:'warning', title:'ตอบให้ครบทุกข้อ', background:'#111', color:'#fff'}); return; }
             
-            Swal.fire({didOpen:()=>Swal.showLoading(), background:'#111'});
+            showLoading(true, "SAVING...");
             let pl={action:'submitEval', userId:userProfile.userId, comment:fd.get('comment')};
             for(let i=1;i<=10;i++) pl[`q${i}`]=fd.get(`q${i}`);
             
             const d=await callGAS(pl);
             if(d.status==='success') {
-                userMissionStatus=d.data.missions; renderStamps(false); checkCertificateStatus(); closeAllModals();
+                userMissionStatus=d.data.missions; renderStamps(false); checkCertificateStatus(); closeAllModals(); showLoading(false);
                 Swal.fire({icon:'success', title:'ขอบคุณครับ', background:'#111', color:'#fff', timer:1500, showConfirmButton:false});
             }
         }
 
         async function generateCertificate() {
-            Swal.fire({title:'Creating PDF...', didOpen:()=>Swal.showLoading(), background:'#111', color:'#fff'});
+            showLoading(true, "CREATING PDF...");
             try {
                 const d = await callGAS({action:'generateCert', userId:userProfile.userId});
+                showLoading(false);
                 if(d.status==='success') {
-                   // Try LIFF message, but always show Swal link
                    try { if(liff.isInClient()) await liff.sendMessages([{type:'text', text:`เกียรติบัตรของคุณ: ${d.url}`}]); } catch(e){}
-                   
                    Swal.fire({
-                       icon:'success', 
-                       title:'ออกเกียรติบัตรสำเร็จ',
+                       icon:'success', title:'ออกเกียรติบัตรสำเร็จ',
                        html: `<a href="${d.url}" target="_blank" class="block bg-neon-teal text-black font-bold py-3 px-4 rounded mt-4">คลิกเพื่อดาวน์โหลด PDF</a>`,
                        background:'#111', color:'#fff', showConfirmButton: false
                    });
                 } else { throw new Error(d.message); }
-            } catch(e) { Swal.fire('Error', e.message, 'error'); }
+            } catch(e) { showLoading(false); Swal.fire('Error', e.message, 'error'); }
         }
 
         function openModal(t, c) {
@@ -652,6 +647,7 @@
         }
         function closeAllModals() { document.getElementById('modal-template').classList.add('opacity-0','pointer-events-none'); if(timerInterval) clearInterval(timerInterval); }
         function simulateScan() { markMissionComplete(currentModalMission); }
+        function formatTime(s) { return new Date(s * 1000).toISOString().substr(14, 8); }
 
         main();
     </script>
