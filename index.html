@@ -42,7 +42,7 @@
         .modal { transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; }
         body.modal-active { overflow-x: hidden; overflow-y: visible !important; }
         
-        /* Unified Loading Overlay */
+        /* Loading Overlay */
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
@@ -66,11 +66,44 @@
             50% { transform: scale(1.05); }
         }
         .stamp-bounce { animation: gentle-bounce 2s infinite ease-in-out; }
-        
+
+        @keyframes glow-pulse {
+            0% { box-shadow: 0 0 5px #00FFFF; border-color: #00FFFF; }
+            50% { box-shadow: 0 0 20px #00FFFF, 0 0 10px #00FFFF inset; border-color: #ffffff; }
+            100% { box-shadow: 0 0 5px #00FFFF; border-color: #00FFFF; }
+        }
+        .completed-glow { animation: glow-pulse 2s infinite; }
+
+        @keyframes bg-blink {
+            0% { background-color: rgba(0, 255, 255, 0.1); box-shadow: 0 0 5px #00FFFF inset; }
+            50% { background-color: rgba(0, 255, 255, 0.3); box-shadow: 0 0 20px #00FFFF inset; }
+            100% { background-color: rgba(0, 255, 255, 0.1); box-shadow: 0 0 5px #00FFFF inset; }
+        }
         .agenda-active {
-            background-color: #00FFFF !important; color: black !important;
-            box-shadow: 0 0 15px #00FFFF; border-color: #FFFFFF !important;
-            transform: scale(1.02); font-weight: bold;
+            animation: bg-blink 2s infinite ease-in-out;
+            color: #FFFFFF !important;
+            border: 1px solid #00FFFF !important;
+        }
+        .agenda-active .time-text { color: #FFFF00 !important; text-shadow: 0 0 5px #FFFF00; font-weight: bold; }
+
+        /* Bubble */
+        .bubble {
+            position: absolute;
+            background: #FF00FF;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 0 10px #FF00FF;
+            animation: bounce-slow 1.5s infinite;
+            white-space: nowrap;
+            z-index: 50;
+        }
+        .bubble::after {
+            content: ''; position: absolute; bottom: -6px; left: 50%;
+            transform: translateX(-50%); border-width: 6px 6px 0;
+            border-style: solid; border-color: #FF00FF transparent transparent transparent;
         }
     </style>
 </head>
@@ -90,9 +123,10 @@
             <div class="absolute inset-0 bg-gradient-to-b from-teal-900/20 to-black/80 pointer-events-none"></div>
             
             <div class="relative z-10">
-                <!-- Title: Simple Neon Blue -->
-                <div class="text-center mb-4">
+                <!-- Title -->
+                <div class="text-center mb-3">
                     <h1 class="text-3xl font-bold tracking-widest text-neon-teal text-glow truncate">Sawee IC Day 2025</h1>
+                    <p class="text-sm text-gray-300 mt-1 animate-pulse">กรุณาทำภารกิจ สะสมสแตมป์ให้ครบ 6 ดวง</p>
                 </div>
 
                 <!-- User Info -->
@@ -100,19 +134,19 @@
                      <img id="user-img" src="" class="w-14 h-14 rounded-full border-2 border-neon-teal shadow-neon-teal object-cover flex-shrink-0">
                      <div class="flex-grow min-w-0">
                          <span id="user-name" class="font-bold text-lg text-white block leading-tight truncate">User</span>
-                         <span id="user-dept" class="text-sm text-neon-green font-medium truncate block">กำลังโหลด...</span>
+                         <span id="user-dept" class="text-xs text-neon-green font-light truncate block mt-1">กำลังโหลด...</span>
                      </div>
                 </div>
             </div>
         </div>
 
         <!-- Stamps Grid -->
-        <div class="flex-grow p-6 flex flex-col items-center justify-center">
-            <div class="grid grid-cols-2 gap-6 w-full max-w-sm" id="stamp-grid"></div>
+        <div class="flex-grow p-6 flex flex-col items-center justify-center relative">
+            <div class="grid grid-cols-2 gap-6 w-full max-w-sm relative" id="stamp-grid"></div>
 
             <!-- Download Certificate -->
             <div id="cert-section" class="mt-8 w-full">
-                <button id="cert-btn" onclick="generateCertificate()" disabled class="w-full bg-gray-800 text-gray-500 font-bold py-4 px-6 rounded-xl border border-gray-700 transition-all flex items-center justify-center">
+                <button id="cert-btn" onclick="generateCertificate()" disabled class="w-full bg-gray-800 text-gray-500 font-bold py-4 px-6 rounded-xl border border-gray-700 transition-all flex items-center justify-center text-lg">
                     <span class="flex items-center">🔒 รับเกียรติบัตร (Locked)</span>
                 </button>
             </div>
@@ -121,11 +155,11 @@
         <!-- Footer Buttons -->
         <div class="fixed bottom-0 w-full max-w-md bg-black/90 backdrop-blur border-t border-gray-800 p-3 grid grid-cols-2 gap-3 z-20">
              <a href="https://drive.google.com/drive/folders/1zEoXXmRL6MaUkc3bXPEpXRrCRahdg-XO?usp=sharing" target="_blank">
-                <button class="w-full bg-gray-900 border border-neon-pink text-neon-pink text-sm font-bold py-3 rounded-lg shadow-neon-pink text-glow hover:bg-pink-900/30">
+                <button class="w-full bg-gray-900 border border-neon-pink text-neon-pink text-sm font-bold py-3 rounded-lg shadow-neon-pink text-glow hover:bg-pink-900/30 transition-all">
                     เอกสารประกอบ
                 </button>
             </a>
-            <button onclick="openAgendaModal()" class="w-full bg-gray-900 border border-neon-yellow text-neon-yellow text-sm font-bold py-3 rounded-lg shadow-[0_0_10px_#FFFF00] text-glow animate-pulse hover:bg-yellow-900/30">
+            <button onclick="openAgendaModal()" class="w-full bg-gray-900 border border-neon-yellow text-neon-yellow text-sm font-bold py-3 rounded-lg shadow-[0_0_10px_#FFFF00] text-glow hover:bg-yellow-900/30 transition-all">
                 กำหนดการอบรม
             </button>
         </div>
@@ -136,41 +170,41 @@
         <div class="modal-overlay absolute w-full h-full bg-black/95" onclick="closeAllModals()"></div>
         <div class="modal-container bg-gray-900 border border-neon-teal w-11/12 md:max-w-md mx-auto rounded-2xl shadow-neon-teal z-50 overflow-hidden flex flex-col max-h-[90vh]">
             <div class="modal-header px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-black/50">
-                <p class="text-xl font-bold text-neon-teal text-glow" id="modal-title">Title</p>
-                <div class="cursor-pointer text-gray-400 hover:text-white text-2xl" onclick="closeAllModals()">✕</div>
+                <p class="text-2xl font-bold text-neon-teal text-glow" id="modal-title">Title</p>
+                <div class="cursor-pointer text-gray-400 hover:text-white text-3xl" onclick="closeAllModals()">✕</div>
             </div>
-            <div id="modal-body" class="p-6 overflow-y-auto custom-scrollbar text-white"></div>
+            <div id="modal-body" class="p-6 overflow-y-auto custom-scrollbar text-white text-lg"></div>
         </div>
     </div>
 
     <!-- 1. REGISTRATION FORM -->
     <template id="regis-form-template">
-        <form id="regis-form" class="space-y-4">
+        <form id="regis-form" class="space-y-5">
             <div class="grid grid-cols-2 gap-4">
-                <div><label class="block text-sm font-bold mb-1 text-neon-green">คำนำหน้า</label>
-                <select name="title" id="input-title" required class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white"><option value="">เลือก</option><option value="นาย">นาย</option><option value="นาง">นาง</option><option value="นางสาว">นางสาว</option></select></div>
-                <div><label class="block text-sm font-bold mb-1 text-neon-green">เพศ</label><select name="gender" id="input-gender" required class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white"><option value="">เลือก</option><option value="ชาย">ชาย</option><option value="หญิง">หญิง</option></select></div>
+                <div><label class="block text-base font-bold mb-1 text-neon-green">คำนำหน้า</label>
+                <select name="title" id="input-title" required class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white text-lg"><option value="">เลือก</option><option value="นาย">นาย</option><option value="นาง">นาง</option><option value="นางสาว">นางสาว</option></select></div>
+                <div><label class="block text-base font-bold mb-1 text-neon-green">เพศ</label><select name="gender" id="input-gender" required class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white text-lg"><option value="">เลือก</option><option value="ชาย">ชาย</option><option value="หญิง">หญิง</option></select></div>
             </div>
-            <div><label class="block text-sm font-bold mb-1 text-neon-green">ชื่อ-สกุล</label><input type="text" name="name" id="input-name" required class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white" placeholder="ชื่อ นามสกุล"></div>
+            <div><label class="block text-base font-bold mb-1 text-neon-green">ชื่อ-สกุล</label><input type="text" name="name" id="input-name" required class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white text-lg" placeholder="ชื่อ นามสกุล"></div>
             <div class="grid grid-cols-2 gap-4">
-                <div><label class="block text-sm font-bold mb-1 text-neon-green">อายุ</label><input type="number" name="age" id="input-age" required class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white"></div>
-                <div><label class="block text-sm font-bold mb-1 text-neon-green">รุ่นการอบรม</label>
-                <select name="round" id="input-round" required class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white font-bold text-neon-yellow">
+                <div><label class="block text-base font-bold mb-1 text-neon-green">อายุ</label><input type="number" name="age" id="input-age" required class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white text-lg"></div>
+                <div><label class="block text-base font-bold mb-1 text-neon-green">รุ่นการอบรม</label>
+                <select name="round" id="input-round" required class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white font-bold text-neon-yellow text-lg">
                     <option value="รุ่น 16 ธ.ค.">รุ่น 16 ธ.ค.</option>
                     <option value="รุ่น 18 ธ.ค.">รุ่น 18 ธ.ค.</option>
                 </select></div>
             </div>
-            <div><label class="block text-sm font-bold mb-1 text-neon-green">หน่วยงาน</label><select name="dept" id="input-dept" required class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white text-sm"><option value="">เลือกหน่วยงาน</option></select></div>
-            <button type="button" onclick="submitRegistration()" class="w-full bg-neon-green text-black font-bold py-3 mt-4 rounded-lg shadow-neon-green hover:bg-green-400 transform hover:scale-105 transition-transform">บันทึกข้อมูล</button>
+            <div><label class="block text-base font-bold mb-1 text-neon-green">หน่วยงาน</label><select name="dept" id="input-dept" required class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white text-lg"><option value="">เลือกหน่วยงาน</option></select></div>
+            <button type="button" onclick="submitRegistration()" class="w-full bg-neon-green text-black font-bold py-4 mt-4 rounded-lg shadow-[0_0_10px_#39FF14] hover:bg-green-400 transform hover:scale-105 transition-transform text-xl">บันทึกข้อมูล</button>
         </form>
     </template>
 
     <!-- 2 & 5. QUIZ TEMPLATE -->
     <template id="quiz-template">
         <div id="quiz-container" class="space-y-6">
-            <div id="timer-container" class="hidden text-center mb-4"><span class="text-sm text-gray-400">เวลาที่ใช้:</span><div id="timer" class="text-4xl font-mono font-bold text-neon-teal text-glow">00:00.00</div></div>
+            <div id="timer-container" class="hidden text-center mb-4"><span class="text-base text-gray-400">เวลาที่ใช้:</span><div id="timer" class="text-5xl font-mono font-bold text-neon-teal text-glow">00:00.00</div></div>
             <form id="quiz-form" class="space-y-8"></form>
-            <button type="button" id="submit-quiz-btn" class="w-full bg-neon-teal text-black font-bold py-3 rounded-lg shadow-neon-teal text-lg hover:bg-cyan-300">ส่งคำตอบ</button>
+            <button type="button" id="submit-quiz-btn" class="w-full bg-neon-teal text-black font-bold py-4 rounded-lg shadow-[0_0_10px_#00FFFF] text-xl hover:bg-cyan-300 transform hover:scale-105 transition-transform">ส่งคำตอบ</button>
         </div>
     </template>
 
@@ -179,11 +213,11 @@
         <div class="text-center space-y-6 py-6">
             <h2 class="text-3xl font-bold text-white">ความรู้น่ะมีกันทุกคนอยู่แล้ว...</h2>
             <p class="text-2xl text-neon-teal text-glow font-bold mt-4">"งั้นเรามาแข่งกันที่ความเร็วด้วยละกัน"</p>
-            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 mt-6">
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 mt-6 shadow-[0_0_10px_#ffffff20]">
                 <p class="text-xl text-gray-300">ตั้งสติก่อนนะ!</p>
                 <p class="text-base text-gray-500 mt-2">ระบบจะจับเวลาทันทีที่เริ่ม</p>
             </div>
-            <button type="button" onclick="startPosttestQuiz()" class="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-black font-bold py-6 rounded-xl shadow-neon-teal text-3xl animate-pulse hover:scale-105 transition-transform mt-6">
+            <button type="button" onclick="startPosttestQuiz()" class="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-black font-bold py-6 rounded-xl shadow-[0_0_15px_#00FFFF] text-3xl animate-pulse hover:scale-105 transition-transform mt-6">
                 เริ่มทำข้อสอบ
             </button>
         </div>
@@ -194,11 +228,11 @@
         <div id="result-container" class="text-center space-y-8 py-4">
             <h2 class="text-3xl font-bold text-neon-teal text-glow-strong">ผลการทดสอบ</h2>
             <div class="flex justify-center items-end space-x-8">
-                <div><p class="text-gray-400 mb-2">คะแนน</p><div class="text-7xl font-bold text-white text-glow"><span id="result-score">0</span><span class="text-3xl text-gray-500">/20</span></div></div>
-                <div><p class="text-gray-400 mb-2">เวลา</p><div id="result-time" class="text-3xl font-mono font-bold text-neon-teal">00:00</div></div>
+                <div><p class="text-gray-400 mb-2 text-lg">คะแนน</p><div class="text-7xl font-bold text-white text-glow"><span id="result-score">0</span><span class="text-3xl text-gray-500">/20</span></div></div>
+                <div><p class="text-gray-400 mb-2 text-lg">เวลา</p><div id="result-time" class="text-3xl font-mono font-bold text-neon-teal">00:00</div></div>
             </div>
             <div id="ranking-section" class="pt-8 border-t border-gray-800 hidden">
-                <button type="button" onclick="calculateRanking()" id="ranking-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 rounded-xl text-lg shadow-lg">ดูอันดับของคุณ</button>
+                <button type="button" onclick="calculateRanking()" id="ranking-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 rounded-xl text-xl shadow-[0_0_15px_#A020F0] transform hover:scale-105 transition-transform">ดูอันดับของคุณ</button>
                 <div id="ranking-result" class="mt-6 hidden space-y-4 bg-gray-800 p-4 rounded-xl border border-gray-700">
                      <p class="text-xl text-gray-300">คุณอยู่อันดับที่</p>
                      <div id="rank-display" class="text-8xl font-bold text-neon-pink text-glow-strong">?</div>
@@ -211,33 +245,34 @@
 
     <!-- 6. EVAL FORM -->
     <template id="eval-form-template">
-        <div class="text-lg text-gray-300 mb-6 text-center font-medium">5 = มากที่สุด ... 1 = น้อยที่สุด</div>
+        <div class="text-xl text-gray-300 mb-6 text-center font-medium">5 = มากที่สุด ... 1 = น้อยที่สุด</div>
         <form id="eval-form" class="space-y-8 text-lg">
             <div id="eval-questions-container"></div>
-            <div><label class="block text-lg font-bold mb-2 text-neon-pink">ข้อเสนอแนะเพิ่มเติม</label><textarea name="comment" rows="3" class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white text-lg"></textarea></div>
-            <button type="button" onclick="submitEvaluation()" class="w-full bg-neon-pink text-white font-bold py-4 rounded-lg shadow-neon-pink text-xl hover:bg-pink-600">ส่งแบบประเมิน</button>
+            <div><label class="block text-xl font-bold mb-2 text-neon-pink">ข้อเสนอแนะเพิ่มเติม</label><textarea name="comment" rows="3" class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white text-xl"></textarea></div>
+            <button type="button" onclick="submitEvaluation()" class="w-full bg-neon-pink text-white font-bold py-4 rounded-lg shadow-[0_0_15px_#FF00FF] text-2xl hover:bg-pink-600 transform hover:scale-105 transition-transform">ส่งแบบประเมิน</button>
         </form>
     </template>
 
     <!-- AGENDA MODAL -->
     <template id="agenda-template">
-        <div class="space-y-6">
+        <div class="space-y-4">
             <div class="text-center border-b border-gray-800 pb-4">
-                <h3 class="text-2xl font-bold text-neon-yellow">กำหนดการอบรม</h3>
-                <p class="text-sm text-gray-400 mt-2">รุ่นที่ 1: 16 ธันวาคม 2568</p>
-                <p class="text-sm text-gray-400">รุ่นที่ 2: 18 ธันวาคม 2568</p>
+                <h3 class="text-xl font-bold text-white">ประชุมวิชาการ “ร่วมใจป้องกันการติดเชื้อ เพื่อความปลอดภัยของทุกคนในโรงพยาบาล”</h3>
+                <p class="text-sm text-neon-teal mt-1">(Infection Prevention & Control for All Staff)</p>
+                <p class="text-sm text-gray-400 mt-2">รุ่นที่ 1: 16 ธ.ค. 2568 | รุ่นที่ 2: 18 ธ.ค. 2568</p>
+                <p class="text-xs text-gray-500">ณ ห้องประชุมอาคารส่งเสริมสุขภาพ โรงพยาบาลสวี</p>
             </div>
-            <div id="agenda-list" class="space-y-4 text-left"></div>
+            <div id="agenda-list" class="space-y-3 text-left"></div>
         </div>
     </template>
     
     <!-- QR SCAN TEMPLATE -->
     <template id="qr-instruction-template">
         <div class="text-center space-y-6 py-4">
-            <div class="w-40 h-40 bg-white mx-auto rounded-xl flex items-center justify-center p-2"><svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4h2v-4zM5 21v-4H3v4h2zm-2-4V5H1v12h2zM5 5h14v2H5V5zm14 2v10h2V7h-2zm2 10h-4v4h4v-4z"/></svg></div>
-            <p class="text-xl text-neon-yellow font-bold">สแกน QR Code ฐานกิจกรรม</p>
-            <p class="text-sm text-gray-400">ระบบจะบันทึกคะแนนอัตโนมัติเมื่อสแกน</p>
-            <button onclick="simulateScan()" class="text-xs text-gray-600 underline">*(Test Only) จำลองการสแกน*</button>
+            <div class="w-40 h-40 bg-white mx-auto rounded-xl flex items-center justify-center p-2 shadow-[0_0_20px_#ffffff]"><svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4h2v-4zM5 21v-4H3v4h2zm-2-4V5H1v12h2zM5 5h14v2H5V5zm14 2v10h2V7h-2zm2 10h-4v4h4v-4z"/></svg></div>
+            <p class="text-2xl text-neon-yellow font-bold text-glow">สแกน QR Code ฐานกิจกรรม</p>
+            <p class="text-lg text-gray-400">ระบบจะบันทึกคะแนนอัตโนมัติเมื่อสแกน</p>
+            <button onclick="simulateScan()" class="text-sm text-gray-600 underline mt-4">*(Test Only) จำลองการสแกน*</button>
         </div>
     </template>
 
@@ -259,29 +294,23 @@
         const evalQuestions = ["1. ความเหมาะสมของหัวข้อการอบรม", "2. ความชัดเจนและเข้าใจง่ายของเนื้อหา", "3. ความรู้และความสามารถของวิทยากร", "4. ระยะเวลาในการจัดกิจกรรมเหมาะสม", "5. กิจกรรม/Workshop มีประโยชน์ต่อการปฏิบัติงาน", "6. สถานที่จัดกิจกรรมเหมาะสม", "7. อุปกรณ์โสตทัศนูปกรณ์มีความพร้อม", "8. การลงทะเบียนและการอำนวยความสะดวก", "9. อาหารว่าง/อาหารกลางวัน", "10. ภาพรวมความพึงพอใจต่อการจัดงาน"];
 
         const agendaData = [
-            { time: "08:00 - 08:30", title: "ลงทะเบียน และทำแบบทดสอบก่อนอบรม (Pre-test)" },
-            { time: "08:30 - 09:30", title: "กล่าวเปิดงาน/ชี้แจงวัตถุประสงค์", speaker: "นายแพทย์พงษ์เพียร พัทธ์พิพัฒน์บุศย์ ผู้อำนวยการโรงพยาบาลสวี" },
-            { time: "09:00 - 10:00", title: "บรรยายหัวข้อ \"แนวทางป้องกันและควบคุมการติดเชื้อฯ\"", speaker: "พญ. จินตนา จันทร์เพ็ง" },
-            { time: "10:00 - 11:00", title: "บรรยายหัวข้อ \"การใช้อุปกรณ์ป้องกัน PPE\"", speaker: "พญ. จินตนา จันทร์เพ็ง" },
-            { time: "11:00 - 12:00", title: "Workshop สวมใส่และถอด PPE และการล้างมือ", speaker: "(สาธิตและฝึกปฏิบัติจริง)" },
-            { time: "12:00 - 13:00", title: "พักรับประทานอาหารกลางวัน" },
-            { time: "13:00 - 13:45", title: "บรรยายหัวข้อ \"วัณโรค\"", speaker: "พญ. นิพา ชุ่มแก้ว" },
-            { time: "13:45 - 15:00", title: "บรรยายหัวข้อ \"ความรู้เรื่องเชื้อดื้อยา\"", speaker: "พญ. ณัฐนิจชา เจียรกุลธรรม" },
-            { time: "15:00 - 16:00", title: "ทำแบบทดสอบหลังอบรม (Post-test)" }
+            { time: "08.00 – 08.30", title: "ลงทะเบียน และทำแบบทดสอบก่อนอบรม Pre-test" },
+            { time: "08.30 – 09.30", title: "กล่าวเปิดงาน/ชี้แจง วัตถุประสงค์", speaker: "โดย นายแพทย์พงษ์เธียร พันธ์พิพัฒไพบูลย์ ผู้อำนวยการโรงพยาบาลสวี" },
+            { time: "09.00 – 10.00", title: "บรรยายหัวข้อ “แนวทางป้องกันและควบคุมการติดเชื้อฯ”", speaker: "โดย พว.จินตนา จันทร์เพ็ง" },
+            { time: "10.00 – 11.00", title: "บรรยายหัวข้อ “การใช้อุปกรณ์ป้องกัน PPE”", speaker: "โดย พว.จินตนา จันทร์เพ็ง" },
+            { time: "11.00 – 12.00", title: "Workshop สวมใส่และถอด PPE และการล้างมือ", speaker: "(สาธิตและฝึกปฏิบัติจริง)" },
+            { time: "12.00 – 13.00", title: "พักรับประทานอาหารกลางวัน" },
+            { time: "13.00 – 13.45", title: "บรรยายหัวข้อ “วัณโรค”", speaker: "โดย พว.นิพา ร่มแก้ว" },
+            { time: "13.45 – 15.00", title: "บรรยายหัวข้อ “การพยาบาลผู้ป่วย Sepsis”", speaker: "โดย พว.ปวีณา นาคกล่อม" },
+            { time: "15.00 – 16.00", title: "ทำแบบทดสอบหลังอบรม Post-test" }
         ];
 
         let userProfile = null, userData = {}, userMissionStatus = [0,0,0,0,0,0], quizScores = { pre: null, post: null };
         let quizQuestions = [], currentTestType = null, startTime = null, timerInterval = null, currentModalMission = null;
 
-        // Custom Loading Function
         function showLoading(show, msg="LOADING...") {
              const ol = document.getElementById('loading-overlay');
-             if(show) { 
-                 ol.style.display='flex'; 
-                 ol.querySelector('p').innerText=msg; 
-             } else { 
-                 ol.style.display='none'; 
-             }
+             if(show) { ol.style.display='flex'; ol.querySelector('p').innerText=msg; } else { ol.style.display='none'; }
         }
 
         async function main() {
@@ -343,14 +372,30 @@
         function renderStamps(isSkeleton) {
             const grid = document.getElementById('stamp-grid');
             grid.innerHTML = '';
+            
+            // Bubble Logic
+            const showBubble = !isSkeleton && userMissionStatus[0] != 1;
+            
             missions.forEach((m, i) => {
                 const done = isSkeleton ? false : userMissionStatus[i] == 1;
                 const img = done ? m.color : m.grey;
                 const div = document.createElement('div');
-                div.className = `aspect-square relative rounded-full overflow-hidden transition-all duration-300 transform bg-gray-900 border-2 ${done ? 'border-neon-green shadow-neon-green hover:scale-105' : 'border-gray-800 grayscale opacity-80 hover:opacity-100 cursor-pointer stamp-bounce'}`;
+                div.className = `aspect-square relative rounded-full overflow-hidden transition-all duration-300 transform bg-gray-900 border-2 ${done ? 'border-neon-green shadow-[0_0_15px_#39FF14] completed-glow' : 'border-gray-800 grayscale opacity-80 hover:opacity-100 cursor-pointer stamp-bounce'}`;
                 
                 div.onclick = () => handleMissionClick(m.id, done);
                 div.innerHTML = `<img src="${img}" class="w-full h-full object-cover">`;
+                
+                // Add Bubble to 1st stamp
+                if (i === 0 && showBubble) {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'bubble';
+                    bubble.style.top = '-40px';
+                    bubble.style.left = '50%';
+                    bubble.style.transform = 'translateX(-50%)';
+                    bubble.innerText = 'เริ่มต้นลงทะเบียนก่อนทำแบบทดสอบ';
+                    div.appendChild(bubble);
+                }
+
                 grid.appendChild(div);
                 
                 if(!isSkeleton) anime({targets: div, opacity: [0, 1], scale: [0.5, 1], delay: i * 150, easing: 'easeOutElastic(1, .5)'});
@@ -377,7 +422,7 @@
             const btn = document.getElementById('cert-btn');
             if (allDone) {
                 btn.disabled = false;
-                btn.className = "w-full bg-black border border-neon-teal text-neon-teal font-bold py-4 px-6 rounded-xl shadow-neon-teal hover:bg-teal-900/30 text-glow transition-all animate-pulse";
+                btn.className = "w-full bg-black border border-neon-teal text-neon-teal font-bold py-4 px-6 rounded-xl shadow-[0_0_15px_#00FFFF] text-glow transition-all animate-pulse";
                 btn.innerHTML = `<span class="flex items-center justify-center">🏆 ดาวน์โหลดเกียรติบัตร</span>`;
             }
         }
@@ -389,10 +434,9 @@
                 if(userMissionStatus[0] == 1) {
                     if(!isCompleted) openQuizModal('Pretest'); 
                     else {
-                         // Show score if available
                          let msg = 'ทำแบบทดสอบแล้ว';
                          if(quizScores.pre) msg = `คะแนน: ${quizScores.pre.score}/20`;
-                         Swal.fire({title:'Pre-test Complete', text: msg, icon:'info', background:'#111', color:'#fff'});
+                         Swal.fire({title:'Pre-test Complete', text: msg, icon:'info', background:'#111', color:'#fff', confirmButtonColor:'#00FFFF', confirmButtonText:'ตกลง'});
                     }
                 }
                 else showLockAlert(1);
@@ -402,12 +446,17 @@
                 else Swal.fire({title:'ภารกิจสำเร็จแล้ว', icon:'success', background:'#111', color:'#fff', timer:1000, showConfirmButton:false});
             }
             else if (id === 5) {
-                if(userMissionStatus[1] == 1) {
-                    if(!isCompleted) openQuizModal('Posttest');
-                    else {
-                         let msg = 'ทำแบบทดสอบแล้ว';
-                         if(quizScores.post) msg = `คะแนน: ${quizScores.post.score}/20\nเวลา: ${formatTime(quizScores.post.time)}`;
-                         Swal.fire({title:'Post-test Complete', text: msg, icon:'info', background:'#111', color:'#fff'});
+                if(userMissionStatus[1] == 1) { // Check Pre-test done (Mission 2 -> Index 1)
+                    if(!isCompleted) {
+                        openQuizModal('Posttest');
+                    } else {
+                        // RE-CLICK LOGIC: Show Result & Ranking
+                        if(quizScores.post) {
+                            openModal('ผลการทดสอบ', document.createElement('div')); // Placeholder
+                            showTestResult(quizScores.post.score, quizScores.post.time);
+                        } else {
+                            Swal.fire({title:'Error', text:'ไม่พบข้อมูลคะแนน', background:'#111', color:'#fff'});
+                        }
                     }
                 }
                 else showLockAlert(2);
@@ -455,21 +504,23 @@
             const currentTimeVal = currentHour * 60 + currentMin;
 
             agendaData.forEach(item => {
-                const times = item.time.split(' - '); 
-                const [startH, startM] = times[0].split(':').map(Number);
-                const [endH, endM] = times[1].split(':').map(Number);
-                const startVal = startH * 60 + startM;
-                const endVal = endH * 60 + endM;
-                const isActive = currentTimeVal >= startVal && currentTimeVal < endVal;
+                // Parse Time "08.00 – 08.30"
+                const times = item.time.split(' – '); 
+                let isActive = false;
+                if (times.length === 2) {
+                    const [startH, startM] = times[0].split('.').map(Number);
+                    const [endH, endM] = times[1].split('.').map(Number);
+                    const startVal = startH * 60 + startM;
+                    const endVal = endH * 60 + endM;
+                    isActive = currentTimeVal >= startVal && currentTimeVal < endVal;
+                }
                 
                 const div = document.createElement('div');
-                div.className = `p-3 rounded-lg border border-gray-800 flex flex-col sm:flex-row transition-all ${isActive ? 'agenda-active' : 'bg-gray-800'}`;
+                div.className = `p-3 rounded-lg border border-gray-800 flex flex-col transition-all ${isActive ? 'agenda-active' : 'bg-gray-800'}`;
                 div.innerHTML = `
-                    <div class="sm:w-32 font-mono text-lg mb-1 sm:mb-0 ${isActive ? 'text-black' : 'text-neon-teal'}">${item.time}</div>
-                    <div>
-                        <div class="font-bold ${isActive ? 'text-black' : 'text-white'}">${item.title}</div>
-                        ${item.speaker ? `<div class="text-sm ${isActive ? 'text-gray-800' : 'text-gray-400'}">${item.speaker}</div>` : ''}
-                    </div>
+                    <div class="font-mono text-xl mb-1 text-neon-teal time-text">${item.time} น.</div>
+                    <div class="font-bold text-white text-lg">${item.title}</div>
+                    ${item.speaker ? `<div class="text-base text-gray-400 mt-1">${item.speaker}</div>` : ''}
                 `;
                 list.appendChild(div);
             });
@@ -524,7 +575,7 @@
             
             quizQuestions.forEach((q, i) => {
                 let ch = [{v:q.Choice_A,k:'A'},{v:q.Choice_B,k:'B'},{v:q.Choice_C,k:'C'},{v:q.Choice_D,k:'D'}].sort(()=>Math.random()-0.5);
-                form.innerHTML += `<div class="bg-gray-800 p-5 rounded-xl border border-gray-700"><p class="text-xl text-white mb-4 leading-relaxed font-medium">${i+1}. ${q.Question}</p><div class="space-y-3">${ch.map(c => `<label class="flex items-center p-3 hover:bg-gray-700 rounded-lg border border-gray-700 hover:border-neon-teal transition-all"><input type="radio" name="q_${q.ID}" value="${c.k}" required class="quiz-radio"><span class="text-gray-200 ml-3 text-lg">${c.v}</span></label>`).join('')}</div></div>`;
+                form.innerHTML += `<div class="bg-gray-800 p-5 rounded-xl border border-gray-700"><p class="text-2xl text-white mb-4 leading-relaxed font-bold">${i+1}. ${q.Question}</p><div class="space-y-4">${ch.map(c => `<label class="flex items-center p-3 hover:bg-gray-700 rounded-lg border border-gray-700 hover:border-neon-teal transition-all"><input type="radio" name="q_${q.ID}" value="${c.k}" required class="quiz-radio"><span class="text-gray-200 ml-3 text-xl">${c.v}</span></label>`).join('')}</div></div>`;
             });
             tpl.querySelector('#submit-quiz-btn').onclick = submitQuiz;
             container.appendChild(tpl);
@@ -543,7 +594,7 @@
             if(d.status==='success') {
                 userData = pl; userMissionStatus = d.data.missions; 
                 updateProfileUI(); renderStamps(false); closeAllModals(); showLoading(false);
-                Swal.fire({icon:'success', title:'บันทึกเรียบร้อย', background:'#111', color:'#fff', timer:1500, showConfirmButton:false});
+                Swal.fire({icon:'success', title:'บันทึกเรียบร้อย', background:'#111', color:'#fff', confirmButtonColor:'#39FF14', confirmButtonText:'ตกลง'});
             } else {
                  showLoading(false);
                  Swal.fire({icon:'error', title:'Error', text: d.message, background:'#111', color:'#fff'});
@@ -569,11 +620,11 @@
             
             if(d.status==='success') {
                 userMissionStatus=d.data.missions; 
-                quizScores = d.data.scores; // Update local scores
+                quizScores = d.data.scores;
                 renderStamps(false);
                 showLoading(false);
                 if(currentTestType==='Pretest') {
-                    closeAllModals(); Swal.fire({title:`ได้ ${score}/20 คะแนน`, icon:'success', background:'#111', color:'#fff'});
+                    closeAllModals(); Swal.fire({title:`ได้ ${score}/20 คะแนน`, icon:'success', background:'#111', color:'#fff', confirmButtonColor:'#39FF14'});
                 } else {
                     showTestResult(score, dur);
                 }
@@ -585,7 +636,8 @@
             const t = document.getElementById('quiz-result-template').content.cloneNode(true);
             b.appendChild(t);
             anime({targets:'#result-score', innerHTML:[0,score], round:1, easing:'spring(1, 80, 10, 0)'});
-            document.getElementById('result-time').innerText = new Date(dur*1000).toISOString().substr(14, 8);
+            let timeStr = typeof dur === 'number' ? formatTime(dur) : dur;
+            document.getElementById('result-time').innerText = timeStr;
             document.getElementById('ranking-section').classList.remove('hidden');
         }
 
@@ -620,7 +672,7 @@
             const d=await callGAS(pl);
             if(d.status==='success') {
                 userMissionStatus=d.data.missions; renderStamps(false); checkCertificateStatus(); closeAllModals(); showLoading(false);
-                Swal.fire({icon:'success', title:'ขอบคุณครับ', background:'#111', color:'#fff', timer:1500, showConfirmButton:false});
+                Swal.fire({icon:'success', title:'ขอบคุณครับ', background:'#111', color:'#fff', confirmButtonColor:'#39FF14'});
             }
         }
 
