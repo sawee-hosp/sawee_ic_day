@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sawee IC Day Activity</title>
+    <title>Sawee IC Day 2025</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,6 +21,7 @@
                         'neon-teal': '0 0 10px #00FFFF, 0 0 20px #00FFFF',
                         'neon-green': '0 0 10px #39FF14, 0 0 20px #39FF14',
                         'neon-pink': '0 0 10px #FF00FF, 0 0 20px #FF00FF',
+                        'neon-yellow': '0 0 10px #FFFF00, 0 0 20px #FFFF00',
                     },
                     animation: {
                         'bounce-slow': 'bounce 2s infinite',
@@ -56,12 +57,36 @@
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         .quiz-radio, .eval-radio { width: 1.5rem; height: 1.5rem; accent-color: #00FFFF; cursor: pointer; }
         
+        /* Virus Glitch Animation */
+        @keyframes virus-glitch {
+            0% { transform: translate(0,0); color: #00FFFF; text-shadow: 2px 2px 0px #FF00FF; }
+            20% { transform: translate(-2px,2px); color: #39FF14; text-shadow: -2px 2px 0px #FFFF00; }
+            40% { transform: translate(2px,-2px); color: #FFFF00; text-shadow: 2px -2px 0px #00FFFF; }
+            60% { transform: translate(-2px,-2px); color: #FF00FF; text-shadow: -2px -2px 0px #39FF14; }
+            80% { transform: translate(2px,2px); color: #00FFFF; text-shadow: 2px 2px 0px #FF00FF; }
+            100% { transform: translate(0,0); color: #00FFFF; text-shadow: 2px 2px 0px #FF00FF; }
+        }
+        .virus-text {
+            animation: virus-glitch 0.4s infinite steps(4);
+            display: inline-block;
+        }
+        
         /* Bouncy Animation for Stamps */
         @keyframes gentle-bounce {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
         .stamp-bounce { animation: gentle-bounce 2s infinite ease-in-out; }
+        
+        /* Agenda Highlight Row */
+        .agenda-active {
+            background-color: #00FFFF !important;
+            color: black !important;
+            box-shadow: 0 0 15px #00FFFF;
+            border-color: #FFFFFF !important;
+            transform: scale(1.02);
+            font-weight: bold;
+        }
     </style>
 </head>
 <body class="bg-dark-bg min-h-screen flex flex-col items-center text-dark-text overflow-x-hidden">
@@ -79,21 +104,19 @@
         <div class="bg-gray-900 border-b border-neon-teal/50 p-4 rounded-b-3xl shadow-neon-teal z-10 relative overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-b from-teal-900/20 to-black/80 pointer-events-none"></div>
             
-            <div class="relative z-10 flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                     <!-- Profile & Logo -->
-                     <div class="relative">
-                        <img id="user-img" src="" class="w-14 h-14 rounded-full border-2 border-neon-teal shadow-neon-teal object-cover">
-                        <img src="https://i.ibb.co/MktBH2Pg/Screen-Shot-2568-12-15-at-14-23-06.png" class="w-6 h-6 absolute -bottom-1 -right-1 rounded-full border border-black">
-                     </div>
-                     <div>
-                         <span id="user-name" class="font-bold text-lg text-white block leading-tight truncate w-32">User</span>
-                         <span id="user-round" class="text-xs text-neon-green font-mono">กำลังโหลด...</span>
-                     </div>
+            <div class="relative z-10">
+                <!-- Title with Virus Effect -->
+                <div class="text-center mb-4">
+                    <h1 class="text-4xl font-black tracking-widest virus-text">Sawee IC Day 2025</h1>
                 </div>
-                <div class="text-right">
-                    <h1 class="text-2xl font-bold tracking-wide text-neon-teal text-glow">Sawee IC</h1>
-                    <p class="text-xs text-gray-400">Activity Day</p>
+
+                <!-- User Info -->
+                <div id="user-info" class="flex items-center space-x-4 bg-black/40 p-2 rounded-xl border border-gray-800 hidden">
+                     <img id="user-img" src="" class="w-14 h-14 rounded-full border-2 border-neon-teal shadow-neon-teal object-cover flex-shrink-0">
+                     <div class="flex-grow min-w-0">
+                         <span id="user-name" class="font-bold text-lg text-white block leading-tight truncate">User</span>
+                         <span id="user-dept" class="text-sm text-neon-green font-medium truncate block">กำลังโหลด...</span>
+                     </div>
                 </div>
             </div>
         </div>
@@ -169,13 +192,13 @@
     <!-- POST-TEST INTRO -->
     <template id="posttest-intro-template">
         <div class="text-center space-y-6 py-6">
-            <h2 class="text-2xl font-bold text-white">ความรู้น่ะมีกันทุกคนอยู่แล้ว...</h2>
-            <p class="text-xl text-neon-teal text-glow">"งั้นเรามาแข่งกันที่ความเร็วด้วยละกัน"</p>
-            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
-                <p class="text-lg text-gray-300">ตั้งสติก่อนนะ!</p>
-                <p class="text-sm text-gray-500 mt-1">ระบบจะจับเวลาทันทีที่เริ่ม</p>
+            <h2 class="text-3xl font-bold text-white">ความรู้น่ะมีกันทุกคนอยู่แล้ว...</h2>
+            <p class="text-2xl text-neon-teal text-glow font-bold mt-4">"งั้นเรามาแข่งกันที่ความเร็วด้วยละกัน"</p>
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 mt-6">
+                <p class="text-xl text-gray-300">ตั้งสติก่อนนะ!</p>
+                <p class="text-base text-gray-500 mt-2">ระบบจะจับเวลาทันทีที่เริ่ม</p>
             </div>
-            <button type="button" onclick="startPosttestQuiz()" class="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-black font-bold py-5 rounded-xl shadow-neon-teal text-2xl animate-pulse hover:scale-105 transition-transform">
+            <button type="button" onclick="startPosttestQuiz()" class="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-black font-bold py-6 rounded-xl shadow-neon-teal text-3xl animate-pulse hover:scale-105 transition-transform mt-6">
                 เริ่มทำข้อสอบ
             </button>
         </div>
@@ -186,14 +209,14 @@
         <div id="result-container" class="text-center space-y-8 py-4">
             <h2 class="text-3xl font-bold text-neon-teal text-glow-strong">ผลการทดสอบ</h2>
             <div class="flex justify-center items-end space-x-8">
-                <div><p class="text-gray-400 mb-2">คะแนน</p><div class="text-6xl font-bold text-white text-glow"><span id="result-score">0</span><span class="text-2xl text-gray-500">/20</span></div></div>
+                <div><p class="text-gray-400 mb-2">คะแนน</p><div class="text-7xl font-bold text-white text-glow"><span id="result-score">0</span><span class="text-3xl text-gray-500">/20</span></div></div>
                 <div><p class="text-gray-400 mb-2">เวลา</p><div id="result-time" class="text-3xl font-mono font-bold text-neon-teal">00:00</div></div>
             </div>
             <div id="ranking-section" class="pt-8 border-t border-gray-800 hidden">
                 <button type="button" onclick="calculateRanking()" id="ranking-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 rounded-xl text-lg shadow-lg">ดูอันดับของคุณ</button>
                 <div id="ranking-result" class="mt-6 hidden space-y-4 bg-gray-800 p-4 rounded-xl border border-gray-700">
                      <p class="text-xl text-gray-300">คุณอยู่อันดับที่</p>
-                     <div id="rank-display" class="text-7xl font-bold text-neon-pink text-glow-strong">?</div>
+                     <div id="rank-display" class="text-8xl font-bold text-neon-pink text-glow-strong">?</div>
                      <p class="text-sm text-gray-400">จากผู้เข้าสอบ <span id="total-participants" class="text-white font-bold">...</span> คน (รุ่นเดียวกัน)</p>
                      <p class="text-xs text-neon-yellow mt-2 animate-pulse">*อันดับอาจเปลี่ยนแปลงได้จนกว่าจะสอบครบทุกคน</p>
                 </div>
@@ -203,10 +226,10 @@
 
     <!-- 6. EVAL FORM -->
     <template id="eval-form-template">
-        <div class="text-base text-gray-400 mb-4 text-center">5 = มากที่สุด ... 1 = น้อยที่สุด</div>
+        <div class="text-lg text-gray-300 mb-6 text-center font-medium">5 = มากที่สุด ... 1 = น้อยที่สุด</div>
         <form id="eval-form" class="space-y-8 text-lg">
             <div id="eval-questions-container"></div>
-            <div><label class="block text-base font-bold mb-2 text-neon-pink">ข้อเสนอแนะเพิ่มเติม</label><textarea name="comment" rows="3" class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white text-base"></textarea></div>
+            <div><label class="block text-lg font-bold mb-2 text-neon-pink">ข้อเสนอแนะเพิ่มเติม</label><textarea name="comment" rows="3" class="w-full bg-gray-800 border-gray-700 rounded-lg p-3 text-white text-lg"></textarea></div>
             <button type="button" onclick="submitEvaluation()" class="w-full bg-neon-pink text-white font-bold py-4 rounded-lg shadow-neon-pink text-xl hover:bg-pink-600">ส่งแบบประเมิน</button>
         </form>
     </template>
@@ -215,19 +238,10 @@
     <template id="agenda-template">
         <div class="space-y-6">
             <div class="text-center border-b border-gray-800 pb-4">
-                <h3 class="text-xl font-bold text-neon-yellow">กำหนดการอบรม</h3>
-                <p class="text-sm text-gray-400 mt-1">รุ่น 1: 16 ธ.ค. 2568 | รุ่น 2: 18 ธ.ค. 2568</p>
+                <h3 class="text-2xl font-bold text-neon-yellow">กำหนดการอบรม</h3>
             </div>
-            <div class="space-y-4 text-left">
-                <div class="flex items-start"><div class="w-24 font-mono text-neon-teal">08:00-08:30</div><div>ลงทะเบียน / ทำแบบทดสอบก่อนเรียน</div></div>
-                <div class="flex items-start"><div class="w-24 font-mono text-neon-teal">08:30-09:30</div><div>พิธีเปิด / บรรยายวัตถุประสงค์</div></div>
-                <div class="flex items-start"><div class="w-24 font-mono text-neon-teal">09:30-10:30</div><div>บรรยายหัวข้อ IC Basics</div></div>
-                <div class="flex items-start"><div class="w-24 font-mono text-neon-teal">10:30-10:45</div><div>พักรับประทานอาหารว่าง</div></div>
-                <div class="flex items-start"><div class="w-24 font-mono text-neon-teal">10:45-12:00</div><div>ฐานกิจกรรม Workshop (Hand/PPE)</div></div>
-                <div class="flex items-start"><div class="w-24 font-mono text-neon-teal">12:00-13:00</div><div>พักรับประทานอาหารกลางวัน</div></div>
-                <div class="flex items-start"><div class="w-24 font-mono text-neon-teal">13:00-15:30</div><div>บรรยายและสรุปผล</div></div>
-                <div class="flex items-start"><div class="w-24 font-mono text-neon-teal">15:30-16:00</div><div>Post-test / รับเกียรติบัตร</div></div>
-            </div>
+            <!-- Agenda List Generated via JS -->
+            <div id="agenda-list" class="space-y-4 text-left"></div>
         </div>
     </template>
     
@@ -258,7 +272,19 @@
         const deptGroup2 = ["รพ.สต.ท่าหิน", "รพ.สต.ด่านสวี", "รพ.สต.เขาทะลุ", "รพ.สต.เขาค่าย", "รพ.สต.ปากแพรก", "รพ.สต.สวี", "รพ.สต.นาสัก", "รพ.สต.บ้านไทยพัฒนา", "รพ.สต.บ้านแก่งกระทั่ง", "รพ.สต.บ้านคสองน้อย", "รพ.สต.ทุ่งระยะ", "รพ.สต.บ้านดอนทราย", "รพ.สต.วิสัยใตั", "รพ.สต.ครน", "รพ.สต.บ้านควนสามัคคี", "รพ.สต.บ้านน้ำฉา", "สสอ.สวี"];
         const evalQuestions = ["1. ความเหมาะสมของหัวข้อการอบรม", "2. ความชัดเจนและเข้าใจง่ายของเนื้อหา", "3. ความรู้และความสามารถของวิทยากร", "4. ระยะเวลาในการจัดกิจกรรมเหมาะสม", "5. กิจกรรม/Workshop มีประโยชน์ต่อการปฏิบัติงาน", "6. สถานที่จัดกิจกรรมเหมาะสม", "7. อุปกรณ์โสตทัศนูปกรณ์มีความพร้อม", "8. การลงทะเบียนและการอำนวยความสะดวก", "9. อาหารว่าง/อาหารกลางวัน", "10. ภาพรวมความพึงพอใจต่อการจัดงาน"];
 
-        let userProfile = null, userData = {}, userMissionStatus = [0,0,0,0,0,0], userRound = "N/A";
+        const agendaData = [
+            { time: "08:00 - 08:30", title: "ลงทะเบียน และทำแบบทดสอบก่อนอบรม (Pre-test)" },
+            { time: "08:30 - 09:30", title: "กล่าวเปิดงาน/ชี้แจงวัตถุประสงค์", speaker: "นายแพทย์พงษ์เพียร พัทธ์พิพัฒน์บุศย์ ผู้อำนวยการโรงพยาบาลสวี" },
+            { time: "09:00 - 10:00", title: "บรรยายหัวข้อ \"แนวทางป้องกันและควบคุมการติดเชื้อฯ\"", speaker: "พญ. จินตนา จันทร์เพ็ง" },
+            { time: "10:00 - 11:00", title: "บรรยายหัวข้อ \"การใช้อุปกรณ์ป้องกัน PPE\"", speaker: "พญ. จินตนา จันทร์เพ็ง" },
+            { time: "11:00 - 12:00", title: "Workshop สวมใส่และถอด PPE และการล้างมือ", speaker: "(สาธิตและฝึกปฏิบัติจริง)" },
+            { time: "12:00 - 13:00", title: "พักรับประทานอาหารกลางวัน" },
+            { time: "13:00 - 13:45", title: "บรรยายหัวข้อ \"วัณโรค\"", speaker: "พญ. นิพา ชุ่มแก้ว" },
+            { time: "13:45 - 15:00", title: "บรรยายหัวข้อ \"ความรู้เรื่องเชื้อดื้อยา\"", speaker: "พญ. ณัฐนิจชา เจียรกุลธรรม" },
+            { time: "15:00 - 16:00", title: "ทำแบบทดสอบหลังอบรม (Post-test)" }
+        ];
+
+        let userProfile = null, userData = {}, userMissionStatus = [0,0,0,0,0,0];
         let quizQuestions = [], currentTestType = null, startTime = null, timerInterval = null, currentModalMission = null;
 
         async function main() {
@@ -267,8 +293,10 @@
                 await liff.init({ liffId: LIFF_ID });
                 if (!liff.isLoggedIn()) { liff.login(); return; }
                 userProfile = await liff.getProfile();
-                updateProfileUI();
+                
+                // Safe UI Update
                 document.getElementById('loading-overlay').style.display = 'none';
+                updateProfileUI(); // Only call this after profile is loaded and DOM is ready
 
                 const p = new URLSearchParams(window.location.search);
                 if (p.get('action') === 'complete' && p.get('mission')) {
@@ -294,8 +322,7 @@
                 if (d.status === 'success') {
                     userMissionStatus = d.data.missions;
                     userData = d.data.userInfo || {};
-                    userRound = d.data.round || "กรุณาลงทะเบียน";
-                    updateProfileUI(); // Update round in header
+                    updateProfileUI();
                     renderStamps(false);
                     checkCertificateStatus();
                 }
@@ -323,7 +350,6 @@
                 const done = isSkeleton ? false : userMissionStatus[i] == 1;
                 const img = done ? m.color : m.grey;
                 const div = document.createElement('div');
-                // Circular & Bouncy
                 div.className = `aspect-square relative rounded-full overflow-hidden transition-all duration-300 transform bg-gray-900 border-2 ${done ? 'border-neon-green shadow-neon-green hover:scale-105' : 'border-gray-800 grayscale opacity-80 hover:opacity-100 cursor-pointer stamp-bounce'}`;
                 
                 div.onclick = () => handleMissionClick(m.id, done);
@@ -335,10 +361,20 @@
         }
 
         function updateProfileUI() {
-            document.getElementById('user-img').src = userProfile.pictureUrl;
-            document.getElementById('user-name').innerText = userProfile.displayName;
-            document.getElementById('user-round').innerText = userRound;
-            document.getElementById('user-info').classList.remove('hidden');
+            if (!userProfile) return;
+            
+            const imgEl = document.getElementById('user-img');
+            const nameEl = document.getElementById('user-name');
+            const deptEl = document.getElementById('user-dept');
+            const infoEl = document.getElementById('user-info');
+            
+            // Check if elements exist to prevent TypeError
+            if (imgEl && nameEl && deptEl && infoEl) {
+                imgEl.src = userProfile.pictureUrl;
+                nameEl.innerText = (userData.name && userData.title) ? `${userData.title}${userData.name}` : userProfile.displayName;
+                deptEl.innerText = userData.dept || "กรุณาลงทะเบียน";
+                infoEl.classList.remove('hidden');
+            }
         }
 
         function checkCertificateStatus() {
@@ -355,7 +391,7 @@
             currentModalMission = id;
             if (id === 1) openRegisModal();
             else if (id === 2) {
-                // Pre-test: Allow access even if completed (to see score if we stored it, or re-read) - But logic says only if Mission 1 done
+                // Pre-test
                 if(userMissionStatus[0] == 1) {
                     if(!isCompleted) openQuizModal('Pretest'); 
                     else Swal.fire({title:'ทำแบบทดสอบแล้ว', icon:'info', background:'#111', color:'#fff', timer:1500});
@@ -367,7 +403,7 @@
                 else Swal.fire({title:'ภารกิจสำเร็จแล้ว', icon:'success', background:'#111', color:'#fff', timer:1000, showConfirmButton:false});
             }
             else if (id === 5) {
-                // Lock Logic: Only need Pre-test (Mission 2 -> Index 1) to be done
+                // Lock Logic: Needs Mission 2 (Pre-test) done
                 if(userMissionStatus[1] == 1) {
                     if(!isCompleted) openQuizModal('Posttest');
                     else Swal.fire({title:'สอบเสร็จแล้ว', icon:'success', background:'#111', color:'#fff', timer:1500});
@@ -407,12 +443,45 @@
         }
 
         function openQRModal() { openModal('สแกน QR Code', document.getElementById('qr-instruction-template').content.cloneNode(true)); }
-        function openAgendaModal() { openModal('กำหนดการ', document.getElementById('agenda-template').content.cloneNode(true)); }
+        
+        function openAgendaModal() { 
+            const tpl = document.getElementById('agenda-template').content.cloneNode(true);
+            const list = tpl.getElementById('agenda-list');
+            
+            // Time Check Logic
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMin = now.getMinutes();
+            const currentTimeVal = currentHour * 60 + currentMin;
+
+            agendaData.forEach(item => {
+                const times = item.time.split(' - '); // "08:00", "08:30"
+                const [startH, startM] = times[0].split(':').map(Number);
+                const [endH, endM] = times[1].split(':').map(Number);
+                const startVal = startH * 60 + startM;
+                const endVal = endH * 60 + endM;
+
+                const isActive = currentTimeVal >= startVal && currentTimeVal < endVal;
+                
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-lg border border-gray-800 flex flex-col sm:flex-row transition-all ${isActive ? 'agenda-active' : 'bg-gray-800'}`;
+                div.innerHTML = `
+                    <div class="sm:w-32 font-mono text-lg mb-1 sm:mb-0 ${isActive ? 'text-black' : 'text-neon-teal'}">${item.time}</div>
+                    <div>
+                        <div class="font-bold ${isActive ? 'text-black' : 'text-white'}">${item.title}</div>
+                        ${item.speaker ? `<div class="text-sm ${isActive ? 'text-gray-800' : 'text-gray-400'}">${item.speaker}</div>` : ''}
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+            openModal('กำหนดการ', tpl); 
+        }
+
         function openEvalModal() {
             const tpl = document.getElementById('eval-form-template').content.cloneNode(true);
             const c = tpl.getElementById('eval-questions-container');
             evalQuestions.forEach((q, i) => {
-                c.innerHTML += `<div class="bg-gray-800 p-4 rounded-lg border border-gray-700"><p class="text-neon-teal mb-3 text-lg">${q}</p><div class="flex justify-between px-2">${[5,4,3,2,1].map(s=>`<label class="flex flex-col items-center"><input type="radio" name="q${i+1}" value="${s}" required class="eval-radio mb-2"><span class="text-sm text-gray-400">${s}</span></label>`).join('')}</div></div>`;
+                c.innerHTML += `<div class="bg-gray-800 p-6 rounded-lg border border-gray-700"><p class="text-neon-teal mb-4 text-xl font-bold">${q}</p><div class="flex justify-between px-2">${[5,4,3,2,1].map(s=>`<label class="flex flex-col items-center"><input type="radio" name="q${i+1}" value="${s}" required class="eval-radio mb-2"><span class="text-base text-gray-400 font-bold">${s}</span></label>`).join('')}</div></div>`;
             });
             openModal('แบบประเมิน', tpl);
         }
@@ -433,7 +502,7 @@
 
             if (type === 'Posttest') {
                 const intro = document.getElementById('posttest-intro-template').content.cloneNode(true);
-                intro.querySelector('#intro-name').innerText = userProfile.displayName;
+                // No Name needed in intro per request
                 body.appendChild(intro);
             } else {
                 renderQuizForm(body, false);
@@ -455,13 +524,6 @@
             if(showTimer) tpl.querySelector('#timer-container').classList.remove('hidden');
             const form = tpl.querySelector('#quiz-form');
             
-            // Only Pretest needs Round Selection? No, we use userRound for Posttest implicitly.
-            // But if Pretest, logic is to select round.
-            // NOTE: Requirement says "Pretest select round". 
-            // BUT: "Round select based on date" was asked for "Posttest page" in query? 
-            // Actually usually round is set at Regis. The logic now sets round at Regis. 
-            // So we don't need round selector in quiz anymore, we use userData.round.
-
             quizQuestions.forEach((q, i) => {
                 let ch = [{v:q.Choice_A,k:'A'},{v:q.Choice_B,k:'B'},{v:q.Choice_C,k:'C'},{v:q.Choice_D,k:'D'}].sort(()=>Math.random()-0.5);
                 form.innerHTML += `<div class="bg-gray-800 p-5 rounded-xl border border-gray-700"><p class="text-xl text-white mb-4 leading-relaxed font-medium">${i+1}. ${q.Question}</p><div class="space-y-3">${ch.map(c => `<label class="flex items-center p-3 hover:bg-gray-700 rounded-lg border border-gray-700 hover:border-neon-teal transition-all"><input type="radio" name="q_${q.ID}" value="${c.k}" required class="quiz-radio"><span class="text-gray-200 ml-3 text-lg">${c.v}</span></label>`).join('')}</div></div>`;
@@ -481,9 +543,13 @@
             };
             const d = await callGAS(pl);
             if(d.status==='success') {
-                userData = pl; userRound = pl.round; userMissionStatus=d.data.missions;
+                userData = pl; 
+                // Don't overwrite userMissionStatus blindly, as GAS might return updated missions
+                userMissionStatus = d.data.missions; 
                 updateProfileUI(); renderStamps(false); closeAllModals();
                 Swal.fire({icon:'success', title:'บันทึกเรียบร้อย', background:'#111', color:'#fff', timer:1500, showConfirmButton:false});
+            } else {
+                 Swal.fire({icon:'error', title:'Error', text: d.message, background:'#111', color:'#fff'});
             }
         }
 
@@ -498,9 +564,10 @@
             quizQuestions.forEach(q => { if(fd.get(`q_${q.ID}`) === q.Correct_Ref) score++; else wrong.push(q.ID); });
             
             let dur = currentTestType === 'Posttest' ? (performance.now()-startTime)/1000 : 0;
+            // Round is taken from userData for posttest, or from form if we had a selector (which we removed)
             const pl = {
                 action:'submitTest', userId:userProfile.userId, displayName:userProfile.displayName, 
-                round:userRound, type:currentTestType, score:score, duration_sec:dur, wrong_answer:wrong.join(',')
+                round:userData.round || "N/A", type:currentTestType, score:score, duration_sec:dur, wrong_answer:wrong.join(',')
             };
             const d = await callGAS(pl);
             
@@ -532,7 +599,7 @@
             let shuffle = setInterval(() => { rDisplay.innerText = Math.floor(Math.random()*100)+1; }, 50);
 
             try {
-                const d = await callGAS({action:'getRanking', userId:userProfile.userId, round:userRound});
+                const d = await callGAS({action:'getRanking', userId:userProfile.userId, round:userData.round});
                 clearInterval(shuffle);
                 if(d.status==='success') {
                     rDisplay.innerText = d.data.rank;
