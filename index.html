@@ -604,6 +604,10 @@
         }
 
         async function submitRegistration() {
+            if(!userProfile || !userProfile.userId) {
+                Swal.fire({icon:'error', title:'ไม่พบข้อมูลผู้ใช้', text:'กรุณาลองเปิดใหม่อีกครั้ง', background:'#111', color:'#fff'});
+                return;
+            }
             const f = document.getElementById('regis-form');
             if (!f.checkValidity()) { f.reportValidity(); return; }
             showLoading(true, "SAVING...");
@@ -612,15 +616,21 @@
                 action:'register', userId:userProfile.userId, displayName:userProfile.displayName, pictureProfile:userProfile.pictureUrl,
                 title:fd.get('title'), name:fd.get('name'), age:fd.get('age'), gender:fd.get('gender'), dept:fd.get('dept'), round:fd.get('round')
             };
-            const d = await callGAS(pl);
-            showLoading(false); // Stop loading here
-            if(d.status==='success') {
-                userData = pl; userMissionStatus = d.data.missions; 
-                updateProfileUI(); renderStamps(false); closeAllModals(); 
-                playSuccessSound();
-                Swal.fire({icon:'success', title:'บันทึกเรียบร้อย', background:'#111', color:'#fff', confirmButtonColor:'#39FF14', confirmButtonText:'ตกลง'});
-            } else {
-                 Swal.fire({icon:'error', title:'Error', text: d.message, background:'#111', color:'#fff'});
+            
+            try {
+                const d = await callGAS(pl);
+                showLoading(false);
+                if(d.status==='success') {
+                    userData = pl; userMissionStatus = d.data.missions; 
+                    updateProfileUI(); renderStamps(false); closeAllModals(); 
+                    playSuccessSound();
+                    Swal.fire({icon:'success', title:'บันทึกเรียบร้อย', background:'#111', color:'#fff', confirmButtonColor:'#39FF14', confirmButtonText:'ตกลง'});
+                } else {
+                    Swal.fire({icon:'error', title:'เกิดข้อผิดพลาด', text: d.message, background:'#111', color:'#fff'});
+                }
+            } catch(e) {
+                showLoading(false);
+                Swal.fire({icon:'error', title:'Connection Error', text: e.message, background:'#111', color:'#fff'});
             }
         }
 
