@@ -14,11 +14,25 @@
                 extend: {
                     colors: {
                         dark: {
-                            bg: '#121212',
-                            card: '#1E1E1E',
-                            text: '#E0E0E0',
-                            muted: '#A0A0A0'
+                            bg: '#000000', // Pure Black
+                            card: '#111111',
+                            text: '#FFFFFF',
+                            muted: '#AAAAAA'
+                        },
+                        neon: {
+                            teal: '#00FFFF',
+                            green: '#39FF14',
+                            pink: '#FF00FF',
+                            yellow: '#FFFF00'
                         }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans Thai"', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'neon-teal': '0 0 10px #00FFFF, 0 0 20px #00FFFF',
+                        'neon-green': '0 0 10px #39FF14, 0 0 20px #39FF14',
+                        'neon-pink': '0 0 10px #FF00FF, 0 0 20px #FF00FF',
                     }
                 }
             }
@@ -28,179 +42,188 @@
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Prompt Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Anime.js for animations -->
+    <!-- Noto Sans Thai Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Anime.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 
-
     <style>
-        body { font-family: 'Prompt', sans-serif; }
+        body { font-family: 'Noto Sans Thai', sans-serif; background-color: #000000; color: #FFFFFF; }
         .modal { transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; }
         body.modal-active { overflow-x: hidden; overflow-y: visible !important; }
         
         /* Loading Overlay */
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); /* Darker overlay */
+            background: #000000;
             z-index: 9999; display: flex; justify-content: center; align-items: center;
-            flex-direction: column; color: #E0E0E0;
+            flex-direction: column; color: #00FFFF;
         }
         .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #14b8a6; /* Teal */
-            border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;
+            border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #00FFFF; /* Neon Teal */
+            border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;
+            box-shadow: 0 0 15px #00FFFF;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Custom Radio Button for Quiz */
-        .quiz-radio {
-            appearance: none;
-            background-color: transparent;
-            margin: 0;
-            font: inherit;
-            color: currentColor;
-            width: 1.15em;
-            height: 1.15em;
-            border: 2px solid currentColor;
-            border-radius: 50%;
-            transform: translateY(-0.075em);
-            display: grid;
-            place-content: center;
-        }
-        .quiz-radio::before {
-            content: "";
-            width: 0.65em;
-            height: 0.65em;
-            border-radius: 50%;
-            transform: scale(0);
-            transition: 120ms transform ease-in-out;
-            box-shadow: inset 1em 1em #14b8a6; /* Teal */
-        }
-        .quiz-radio:checked::before {
-            transform: scale(1);
-        }
-        .choice-label:hover .quiz-radio {
-            border-color: #14b8a6;
-        }
+        /* Neon Glow Text Class */
+        .text-glow { text-shadow: 0 0 5px currentColor; }
+        .text-glow-strong { text-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+
+        /* Custom Scrollbar for Dark Theme */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00FFFF; }
+
+        /* Dropdown Styling */
+        .opt-group-1 { background-color: #dcfce7 !important; color: #000 !important; } /* Green-100 */
+        .opt-group-2 { background-color: #fef9c3 !important; color: #000 !important; } /* Yellow-100 */
+
+        /* Radio Buttons */
+        .quiz-radio { width: 1.25em; height: 1.25em; accent-color: #00FFFF; margin-right: 0.5em; cursor: pointer; }
+        .eval-radio { width: 1.5rem; height: 1.5rem; accent-color: #39FF14; cursor: pointer; }
     </style>
 </head>
-<body class="bg-dark-bg min-h-screen flex flex-col items-center text-dark-text">
+<body class="bg-dark-bg min-h-screen flex flex-col items-center text-dark-text overflow-x-hidden">
 
     <!-- Loading Overlay -->
     <div id="loading-overlay">
-        <div class="spinner mb-3"></div>
-        <p class="text-dark-muted font-medium animate-pulse">กำลังโหลดข้อมูล...</p>
+        <div class="spinner mb-4"></div>
+        <p class="text-neon-teal font-medium tracking-wider text-glow animate-pulse">LOADING SYSTEM...</p>
     </div>
 
     <!-- Main Container -->
-    <div class="w-full max-w-md bg-dark-card shadow-2xl min-h-screen flex flex-col relative">
+    <div class="w-full max-w-md bg-black shadow-2xl min-h-screen flex flex-col relative pb-20">
         
         <!-- Header -->
-        <div class="bg-teal-800 p-5 text-white text-center rounded-b-3xl shadow-lg z-10">
-            <h1 class="text-3xl font-bold tracking-wide">Sawee IC Day</h1>
-            <p class="text-sm opacity-90 mt-1">สะสมแสตมป์ให้ครบทั้ง 6 ภารกิจ</p>
-            <div id="user-info" class="mt-4 flex items-center justify-center space-x-3 hidden">
-                <img id="user-img" src="" alt="Profile" class="w-12 h-12 rounded-full border-2 border-teal-400 shadow-sm">
-                <span id="user-name" class="font-medium text-lg"></span>
+        <div class="bg-gray-900 border-b border-neon-teal/50 p-6 text-center rounded-b-3xl shadow-neon-teal z-10 relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-b from-teal-900/20 to-black/80 pointer-events-none"></div>
+            <h1 class="text-3xl font-bold tracking-wide text-neon-teal text-glow-strong relative z-10">Sawee IC Day</h1>
+            <p class="text-sm text-gray-300 mt-2 relative z-10">สะสมแสตมป์ให้ครบทั้ง 6 ภารกิจ</p>
+            
+            <div id="user-info" class="mt-4 flex items-center justify-center space-x-3 hidden relative z-10">
+                <img id="user-img" src="" alt="Profile" class="w-12 h-12 rounded-full border-2 border-neon-teal shadow-neon-teal">
+                <div class="text-left">
+                    <span id="user-name" class="font-medium text-lg text-white block leading-tight">User</span>
+                    <span class="text-xs text-neon-green">Status: Active</span>
+                </div>
             </div>
         </div>
 
-        <!-- Stamps Grid -->
-        <div class="flex-grow p-6 flex items-center justify-center">
-            <div class="grid grid-cols-2 gap-4 w-full max-w-sm" id="stamp-grid">
-                <!-- Images will be injected here by JS -->
+        <!-- Content Area -->
+        <div class="flex-grow p-6 flex flex-col items-center">
+            
+            <!-- Stamps Grid -->
+            <div class="grid grid-cols-2 gap-5 w-full max-w-sm" id="stamp-grid">
+                <!-- Skeletons will be here initially -->
+            </div>
+
+            <!-- Training Material Button -->
+            <a href="https://drive.google.com/drive/folders/1zEoXXmRL6MaUkc3bXPEpXRrCRahdg-XO?usp=sharing" target="_blank" class="mt-8 w-full block">
+                <button class="w-full bg-gray-900 border border-neon-pink text-neon-pink font-bold py-4 px-6 rounded-xl shadow-neon-pink transition-all transform hover:scale-105 hover:bg-pink-900/30 flex items-center justify-center text-glow">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    เอกสารประกอบการอบรม
+                </button>
+            </a>
+
+            <!-- Certificate Button -->
+            <div id="cert-section" class="mt-4 w-full">
+                <button id="cert-btn" onclick="generateCertificate()" disabled class="w-full bg-gray-800 text-gray-500 font-bold py-4 px-6 rounded-xl border border-gray-700 transition-all flex items-center justify-center relative overflow-hidden group">
+                    <span class="relative z-10 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        รับเกียรติบัตร (Locked)
+                    </span>
+                </button>
             </div>
         </div>
 
         <!-- Footer -->
-        <div class="p-4 text-center text-xs text-dark-muted">
+        <div class="p-4 text-center text-xs text-gray-600">
             &copy; 2025 Sawee Hospital
         </div>
-
     </div>
 
-    <!-- Modal Template (Used for Regis, Pre-test, Post-test) -->
-    <div id="modal-template" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50 transition-all duration-300 scale-95">
-        <div class="modal-overlay absolute w-full h-full bg-black opacity-70"></div>
+    <!-- Universal Modal -->
+    <div id="modal-template" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50 transition-all duration-300 backdrop-blur-sm">
+        <div class="modal-overlay absolute w-full h-full bg-black/90" onclick="closeAllModals()"></div>
         
-        <div class="modal-container bg-dark-card w-11/12 md:max-w-md mx-auto rounded-xl shadow-2xl z-50 overflow-y-auto max-h-[90vh] text-dark-text">
+        <div class="modal-container bg-gray-900 border border-neon-teal w-11/12 md:max-w-md mx-auto rounded-2xl shadow-neon-teal z-50 overflow-hidden flex flex-col max-h-[90vh]">
             
-            <div class="modal-content py-4 text-left px-6 relative">
-                <!-- Title -->
-                <div class="flex justify-between items-center pb-3 border-b border-gray-700">
-                    <p class="text-xl font-bold text-teal-400" id="modal-title">Title</p>
-                    <div class="modal-close cursor-pointer z-50 hover:text-teal-400 transition-colors" onclick="closeAllModals()">
-                        <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                        </svg>
-                    </div>
+            <div class="modal-header px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-black/50">
+                <p class="text-xl font-bold text-neon-teal text-glow" id="modal-title">Title</p>
+                <div class="cursor-pointer text-gray-400 hover:text-white transition-colors" onclick="closeAllModals()">
+                    <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
                 </div>
+            </div>
 
-                <!-- Modal Body Content (Injected via JS) -->
-                <div id="modal-body" class="mt-4"></div>
+            <div id="modal-body" class="p-6 overflow-y-auto custom-scrollbar text-white">
+                <!-- Content injected here -->
             </div>
         </div>
     </div>
 
-    <!-- Templates for Modal Content -->
+    <!-- TEMPLATES -->
+
+    <!-- 1. Registration -->
     <template id="regis-form-template">
         <form id="regis-form" class="space-y-4">
             <div>
-                <label class="block text-sm font-bold mb-1 text-teal-300">คำนำหน้าชื่อ</label>
-                <select name="title" required class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-dark-text">
-                    <option value="" class="text-gray-500">เลือกคำนำหน้า</option>
+                <label class="block text-sm font-bold mb-1 text-neon-green">คำนำหน้าชื่อ</label>
+                <select name="title" id="input-title" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-3 text-white focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-colors">
+                    <option value="">เลือกคำนำหน้า</option>
                     <option value="นาย">นาย</option>
                     <option value="นาง">นาง</option>
                     <option value="นางสาว">นางสาว</option>
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-bold mb-1 text-teal-300">ชื่อ-สกุล</label>
-                <input type="text" name="name" required class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-dark-text placeholder-gray-500" placeholder="ชื่อ นามสกุล">
+                <label class="block text-sm font-bold mb-1 text-neon-green">ชื่อ-สกุล</label>
+                <input type="text" name="name" id="input-name" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-3 text-white focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-colors" placeholder="ชื่อ นามสกุล">
             </div>
             <div>
-                <label class="block text-sm font-bold mb-1 text-teal-300">อายุ</label>
-                <input type="number" name="age" required class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-dark-text placeholder-gray-500" placeholder="ระบุอายุ">
+                <label class="block text-sm font-bold mb-1 text-neon-green">อายุ</label>
+                <input type="number" name="age" id="input-age" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-3 text-white focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-colors" placeholder="ระบุอายุ">
             </div>
             <div>
-                <label class="block text-sm font-bold mb-1 text-teal-300">เพศ</label>
-                <select name="gender" required class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-dark-text">
-                    <option value="" class="text-gray-500">เลือกเพศ</option>
+                <label class="block text-sm font-bold mb-1 text-neon-green">เพศ</label>
+                <select name="gender" id="input-gender" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-3 text-white focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-colors">
+                    <option value="">เลือกเพศ</option>
                     <option value="ชาย">ชาย</option>
                     <option value="หญิง">หญิง</option>
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-bold mb-1 text-teal-300">หน่วยงาน</label>
-                <select name="dept" required class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 text-dark-text">
-                    <option value="" class="text-gray-500">เลือกหน่วยงาน</option>
-                    <!-- Options will be populated by JS for brevity -->
+                <label class="block text-sm font-bold mb-1 text-neon-green">หน่วยงาน</label>
+                <select name="dept" id="input-dept" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-3 text-white text-sm focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-colors">
+                    <option value="">เลือกหน่วยงาน</option>
+                    <!-- Generated via JS -->
                 </select>
             </div>
             <div class="pt-4">
-                <button type="button" onclick="submitRegistration()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                <button type="button" onclick="submitRegistration()" class="w-full bg-neon-green text-black font-bold py-3 px-4 rounded-lg shadow-neon-green transition-transform transform hover:scale-105 hover:bg-green-400">
                     บันทึกข้อมูล
                 </button>
             </div>
         </form>
     </template>
 
+    <!-- 2 & 5. Quiz Form -->
     <template id="quiz-template">
         <div id="quiz-container" class="space-y-6">
-            <!-- Timer for Post-test -->
             <div id="timer-container" class="hidden text-center mb-4">
-                <span class="text-sm text-dark-muted">เวลาที่ใช้:</span>
-                <div id="timer" class="text-3xl font-mono font-bold text-teal-400">00:00.00</div>
+                <span class="text-sm text-gray-400">เวลาที่ใช้:</span>
+                <div id="timer" class="text-3xl font-mono font-bold text-neon-teal">00:00.00</div>
             </div>
-
-            <!-- Questions List -->
-            <form id="quiz-form" class="space-y-8">
-                <!-- Questions will be injected here -->
-            </form>
-
-            <!-- Submit Button -->
+            <form id="quiz-form" class="space-y-8"></form>
             <div class="pt-4">
-                <button type="button" id="submit-quiz-btn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                <button type="button" id="submit-quiz-btn" class="w-full bg-neon-teal text-black font-bold py-3 px-4 rounded-lg shadow-neon-teal transition-transform transform hover:scale-105">
                     ส่งคำตอบ
                 </button>
             </div>
@@ -208,61 +231,80 @@
     </template>
 
     <template id="posttest-intro-template">
-        <div class="text-center space-y-6 py-8">
+        <div class="text-center space-y-6 py-4">
             <p class="text-lg leading-relaxed">
-                หลังจากได้รับการอบรมแล้ว ข้อสอบต่อไปนี้คงง่ายๆ สำหรับ <span id="intro-name" class="font-bold text-teal-400"></span> แล้วใช่มั๊ยล่ะ
+                หลังจากได้รับการอบรมแล้ว ข้อสอบต่อไปนี้คงง่ายๆ สำหรับ <span id="intro-name" class="font-bold text-neon-teal"></span> แล้วใช่มั๊ยล่ะ
             </p>
-            <p class="text-base text-dark-muted">
+            <p class="text-sm text-gray-400">
                 ข้อสอบหลังเรียนเราจะมีการจับเวลาด้วย ใครเก่ง ใครเร็ว เตรียมรับรางวัลได้เลย
             </p>
-            <p class="text-xl font-bold animate-pulse text-teal-300">
-                พร้อมแล้วให้กดปุ่ม "ทำข้อสอบหลังเรียน" ได้เลย
-            </p>
-            <button type="button" onclick="startPosttestQuiz()" class="mt-6 w-full bg-gradient-to-r from-teal-500 to-teal-700 hover:from-teal-600 hover:to-teal-800 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-transform transform hover:scale-105 text-xl">
-                ทำข้อสอบหลังเรียน
+            <button type="button" onclick="startPosttestQuiz()" class="mt-4 w-full bg-neon-teal text-black font-bold py-4 px-6 rounded-xl shadow-neon-teal text-xl animate-pulse transition-transform transform hover:scale-105">
+                เริ่มทำข้อสอบ
             </button>
         </div>
     </template>
 
     <template id="quiz-result-template">
-        <div id="result-container" class="text-center space-y-8 py-6">
-            <h2 class="text-2xl font-bold text-teal-400">ผลการทดสอบ</h2>
-            
+        <div id="result-container" class="text-center space-y-8 py-4">
+            <h2 class="text-2xl font-bold text-neon-teal">ผลการทดสอบ</h2>
             <div class="flex justify-center space-x-8">
                 <div class="text-center">
-                    <p class="text-sm text-dark-muted mb-1">คะแนน</p>
-                    <div id="result-score" class="text-5xl font-bold text-teal-300 result-value">0</div>
-                    <p class="text-sm text-dark-muted">เต็ม 20</p>
+                    <p class="text-sm text-gray-400 mb-1">คะแนน</p>
+                    <div id="result-score" class="text-5xl font-bold text-white result-value">0</div>
+                    <p class="text-sm text-gray-400">เต็ม 20</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-sm text-dark-muted mb-1">เวลาที่ใช้</p>
-                    <div id="result-time" class="text-3xl font-mono font-bold text-teal-300 mt-2 result-value">00:00.00</div>
-                    <p class="text-sm text-dark-muted">วินาที</p>
+                    <p class="text-sm text-gray-400 mb-1">เวลาที่ใช้</p>
+                    <div id="result-time" class="text-3xl font-mono font-bold text-neon-teal mt-2 result-value">00:00.00</div>
+                    <p class="text-sm text-gray-400">วินาที</p>
                 </div>
             </div>
-
-            <div id="ranking-section" class="pt-6 border-t border-gray-700 hidden">
-                <button type="button" onclick="calculateRanking()" id="ranking-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
+            <div id="ranking-section" class="pt-6 border-t border-gray-800 hidden">
+                <button type="button" onclick="calculateRanking()" id="ranking-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center justify-center">
                     สรุปอันดับ
                 </button>
-                
-                <div id="ranking-result" class="mt-6 hidden space-y-2">
-                     <p class="text-lg">คุณอยู่อันดับที่ <span id="rank-num" class="text-4xl font-bold text-indigo-400"></span></p>
-                     <p class="text-sm text-dark-muted">จากผู้เข้าสอบทั้งหมด <span id="total-participants"></span> คน (ในรุ่นเดียวกัน)</p>
-                     <p class="text-xs text-dark-muted mt-2 animate-pulse">กำลังคำนวณ...</p>
+                <div id="ranking-result" class="mt-4 hidden space-y-2">
+                     <p class="text-lg">คุณอยู่อันดับที่ <span id="rank-num" class="text-4xl font-bold text-neon-pink"></span></p>
+                     <p class="text-sm text-gray-400">จากผู้เข้าสอบ <span id="total-participants"></span> คน</p>
                 </div>
             </div>
         </div>
     </template>
 
+    <!-- 3 & 4. QR Instruction -->
+    <template id="qr-instruction-template">
+        <div class="text-center space-y-6 py-4">
+            <div class="w-32 h-32 bg-white mx-auto rounded-xl flex items-center justify-center p-2">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-full w-full text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4h2v-4zM5 21v-4H3v4h2zm-2-4V5H1v12h2zM5 5h14v2H5V5zm14 2v10h2V7h-2zm2 10h-4v4h4v-4z" />
+                </svg>
+            </div>
+            <p class="text-lg text-neon-yellow">กรุณาสแกน QR Code ที่ฐานกิจกรรม</p>
+            <p class="text-sm text-gray-400">เมื่อสแกนแล้ว ระบบจะบันทึกคะแนนให้โดยอัตโนมัติ</p>
+            <button onclick="simulateScan()" class="text-xs text-gray-600 underline mt-4">*(Test Only) จำลองการสแกน*</button>
+        </div>
+    </template>
+
+    <!-- 6. Eval Form -->
+    <template id="eval-form-template">
+        <div class="text-sm text-gray-400 mb-4">
+            คำชี้แจง: โปรดระบุระดับความพึงพอใจ (5 = มากที่สุด ... 1 = น้อยที่สุด)
+        </div>
+        <form id="eval-form" class="space-y-6">
+            <div id="eval-questions-container"></div>
+            <div>
+                <label class="block text-sm font-bold mb-2 text-neon-pink">ข้อเสนอแนะเพิ่มเติม</label>
+                <textarea name="comment" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-neon-pink"></textarea>
+            </div>
+            <button type="button" onclick="submitEvaluation()" class="w-full bg-neon-pink text-white font-bold py-3 px-4 rounded-lg shadow-neon-pink transition-transform transform hover:scale-105">
+                ส่งแบบประเมิน
+            </button>
+        </form>
+    </template>
 
     <script>
         // --- CONFIGURATION ---
         const LIFF_ID = "2008690634-O4vlZdND";
-        // **IMPORTANT: REPLACE WITH YOUR DEPLOYED GAS WEB APP URL**
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwYmw1YrTSTE7O-jUmuBIJi-lYvxMp16TISA0r6-iWX5-8KsjCztqdSF3PAejBT-D68/exec";
 
         const missions = [
@@ -274,70 +316,100 @@
             { id: 6, name: "Evaluation", grey: "https://i.ibb.co/BKBJH9cX/13.png", color: "https://i.ibb.co/n8V2tWv7/12.png" }
         ];
 
-        const deptOptions = [
+        // Organization Lists
+        const deptGroup1 = [
             "กลุ่มงานการพยาบาลผู้คลอด (LR)", "กลุ่มงานการแพทย์", "กลุ่มงานการแพทย์แผนไทยและการแพทย์ทางเลือก",
             "กลุ่มงานจิตเวชและยาเสพติด", "กลุ่มงานทันตกรรม", "กลุ่มงานเทคนิคการแพทย์", "กลุ่มงานบริการด้านปฐมภูมิและองค์รวม",
             "กลุ่มงานบริหารทั่วไป", "กลุ่มงานประกันสุขภาพและสารสนเทศทางการแพทย์", "กลุ่มงานรังสีวิทยา", "กลุ่มเวชกรรมฟื้นฟู",
             "คลินิกพิเศษ", "งานการพยาบาลผู้ป่วยนอก (OPD)", "งานการพยาบาลผู้ป่วยใน (IPD)", "งานการพยาบาลผู้ป่วยอุบัติเหตุและฉุกเฉิน (ER)",
-            "งานจ่ายกลางและซักฟอก", "งานฝากครรภ์ (ANC)", "แม่บ้าน", "กลุ่มงานอื่นๆ", "รพ.สต.ท่าหิน", "รพ.สต.ด่านสวี",
-            "รพ.สต.เขาทะลุ", "รพ.สต.เขาค่าย", "รพ.สต.ปากแพรก", "รพ.สต.สวี", "รพ.สต.นาสัก", "รพ.สต.บ้านไทยพัฒนา",
-            "รพ.สต.บ้านแก่งกระทั่ง", "รพ.สต.บ้านคสองน้อย", "รพ.สต.ทุ่งระยะ", "รพ.สต.บ้านดอนทราย", "รพ.สต.วิสัยใตั",
+            "งานจ่ายกลางและซักฟอก", "งานฝากครรภ์ (ANC)", "แม่บ้าน", "กลุ่มงานอื่นๆ", 
+            "กลุ่มงานเภสัชกรรมและคุ้มครองผู้บริโภค"
+        ];
+
+        const deptGroup2 = [
+            "รพ.สต.ท่าหิน", "รพ.สต.ด่านสวี", "รพ.สต.เขาทะลุ", "รพ.สต.เขาค่าย", "รพ.สต.ปากแพรก", 
+            "รพ.สต.สวี", "รพ.สต.นาสัก", "รพ.สต.บ้านไทยพัฒนา", "รพ.สต.บ้านแก่งกระทั่ง", 
+            "รพ.สต.บ้านคสองน้อย", "รพ.สต.ทุ่งระยะ", "รพ.สต.บ้านดอนทราย", "รพ.สต.วิสัยใตั",
             "รพ.สต.ครน", "รพ.สต.บ้านควนสามัคคี", "รพ.สต.บ้านน้ำฉา", "สสอ.สวี"
         ];
 
+        const evalQuestions = [
+            "1. ความเหมาะสมของหัวข้อการอบรม",
+            "2. ความชัดเจนและเข้าใจง่ายของเนื้อหา",
+            "3. ความรู้และความสามารถของวิทยากร",
+            "4. ระยะเวลาในการจัดกิจกรรมเหมาะสม",
+            "5. กิจกรรม/Workshop มีประโยชน์ต่อการปฏิบัติงาน",
+            "6. สถานที่จัดกิจกรรมเหมาะสม",
+            "7. อุปกรณ์โสตทัศนูปกรณ์มีความพร้อม",
+            "8. การลงทะเบียนและการอำนวยความสะดวก",
+            "9. อาหารว่าง/อาหารกลางวัน",
+            "10. ภาพรวมความพึงพอใจต่อการจัดงาน"
+        ];
+
         let userProfile = null;
+        let userData = {}; // Store full user data for editing
         let userMissionStatus = [0, 0, 0, 0, 0, 0];
         let quizQuestions = [];
-        let currentTestType = null; // 'Pretest' or 'Posttest'
+        let currentTestType = null;
+        let userRound = null;
         let startTime = null;
         let timerInterval = null;
-        let userRound = null; // To store user's round selection
+        let currentModalMission = null;
 
-        // --- INITIALIZATION ---
+        // --- CORE FUNCTIONS ---
+
         async function main() {
-            showLoading(true);
+            showLoading(true, "LOADING SYSTEM...");
+            
+            // 1. Initial Render (Skeleton)
+            renderStamps(true); 
+
             try {
+                // 2. Initialize LIFF
                 await liff.init({ liffId: LIFF_ID });
                 if (!liff.isLoggedIn()) {
                     liff.login();
                     return;
                 }
-                
                 userProfile = await liff.getProfile();
                 updateProfileUI();
+                
+                // Hide loader after basic init
+                showLoading(false);
+
+                // 3. Deep Link Handler (QR Code Scans)
+                const urlParams = new URLSearchParams(window.location.search);
+                const actionParam = urlParams.get('action');
+                const missionParam = urlParams.get('mission');
+
+                if (actionParam === 'complete' && missionParam) {
+                    await markMissionComplete(parseInt(missionParam));
+                    // Clear params
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+
+                // 4. Fetch Data
                 await fetchUserStatus();
 
             } catch (err) {
                 console.error(err);
                 Swal.fire({
-                    icon: 'error',
-                    title: 'เกิดข้อผิดพลาด',
-                    text: 'ไม่สามารถเชื่อมต่อกับ LINE LIFF ได้: ' + err.message,
-                    confirmButtonColor: '#14b8a6',
-                    background: '#1E1E1E', color: '#E0E0E0'
+                    icon: 'error', title: 'Error', text: err.message, 
+                    background: '#000', color: '#fff'
                 });
-            } finally {
                 showLoading(false);
             }
         }
 
-        function updateProfileUI() {
-            document.getElementById('user-img').src = userProfile.pictureUrl || 'https://via.placeholder.com/150/1E1E1E/E0E0E0?text=User';
-            document.getElementById('user-name').innerText = userProfile.displayName;
-            document.getElementById('user-info').classList.remove('hidden');
-        }
+        // --- API & DATA ---
 
-        // --- API CALLS ---
         async function callGAS(payload) {
-            // Using fetch with redirect: 'follow' to handle GAS 302 response
             const response = await fetch(GAS_URL, {
                 redirect: "follow",
                 method: "POST",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
                 body: JSON.stringify(payload)
             });
-            
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return await response.json();
         }
 
@@ -346,363 +418,449 @@
                 const data = await callGAS({ action: 'getStatus', userId: userProfile.userId });
                 if (data.status === 'success') {
                     userMissionStatus = data.data.missions;
-                    userRound = data.data.round; // Store user round if available
-                    renderStamps();
-                } else {
-                    throw new Error(data.message || 'Unknown error fetching status');
+                    userData = data.data.userInfo || {};
+                    userRound = data.data.round;
+                    renderStamps(false);
+                    checkCertificateStatus();
                 }
             } catch (error) {
-                console.error('Fetch Status Error:', error);
-                Swal.fire({ icon: 'error', title: 'โหลดข้อมูลไม่สำเร็จ', text: 'กรุณาลองใหม่อีกครั้ง', confirmButtonColor: '#14b8a6', background: '#1E1E1E', color: '#E0E0E0' });
-                renderStamps(); // Render default state
+                console.error(error);
             }
         }
 
-        async function fetchQuestions() {
-            if (quizQuestions.length > 0) return; // Already fetched
-
-            showLoading(true, 'กำลังโหลดข้อสอบ...');
+        async function markMissionComplete(missionId) {
+            showLoading(true, "กำลังบันทึก...");
             try {
+                const data = await callGAS({ action: 'completeMission', userId: userProfile.userId, missionId: missionId });
+                if (data.status === 'success') {
+                    userMissionStatus = data.data.missions;
+                    renderStamps(false);
+                    checkCertificateStatus();
+                    showLoading(false);
+                    Swal.fire({
+                        icon: 'success', title: 'สำเร็จ!', text: `ภารกิจที่ ${missionId} เรียบร้อยแล้ว`,
+                        timer: 2000, showConfirmButton: false, background: '#111', color: '#fff'
+                    });
+                    closeAllModals();
+                }
+            } catch (e) {
+                showLoading(false);
+                Swal.fire({icon: 'error', title: 'Error', text: 'บันทึกไม่สำเร็จ', background: '#111', color: '#fff'});
+            }
+        }
+
+        // --- UI RENDERING ---
+
+        function renderStamps(isSkeleton = false) {
+            const grid = document.getElementById('stamp-grid');
+            grid.innerHTML = '';
+
+            missions.forEach((mission, index) => {
+                const isCompleted = isSkeleton ? false : userMissionStatus[index] == 1;
+                const imgUrl = isCompleted ? mission.color : mission.grey;
+                
+                const div = document.createElement('div');
+                div.className = `aspect-square relative rounded-xl overflow-hidden transition-all duration-300 transform bg-gray-900 border-2`;
+                
+                if (isCompleted) {
+                    div.classList.add('border-neon-green', 'shadow-neon-green', 'hover:scale-105');
+                } else {
+                    div.classList.add('border-gray-800', 'grayscale', 'opacity-80', 'hover:opacity-100', 'hover:scale-105', 'cursor-pointer');
+                }
+
+                div.onclick = () => handleMissionClick(mission.id, isCompleted);
+
+                div.innerHTML = `
+                    <img src="${imgUrl}" class="w-full h-full object-cover" alt="Mission ${mission.id}">
+                    ${isCompleted ? '<div class="absolute inset-0 ring-2 ring-neon-green ring-inset rounded-xl"></div>' : ''}
+                `;
+                
+                grid.appendChild(div);
+
+                // Animation for real render
+                if (!isSkeleton) {
+                    anime({
+                        targets: div, opacity: [0, 1], translateY: [20, 0],
+                        delay: index * 100, easing: 'easeOutExpo'
+                    });
+                }
+            });
+        }
+
+        function updateProfileUI() {
+            document.getElementById('user-img').src = userProfile.pictureUrl;
+            document.getElementById('user-name').innerText = userProfile.displayName;
+            document.getElementById('user-info').classList.remove('hidden');
+        }
+
+        function checkCertificateStatus() {
+            const allDone = userMissionStatus.every(s => s == 1);
+            const btn = document.getElementById('cert-btn');
+            
+            if (allDone) {
+                btn.disabled = false;
+                btn.className = "w-full bg-black border border-neon-teal text-neon-teal font-bold py-4 px-6 rounded-xl shadow-neon-teal hover:bg-teal-900/30 text-glow transition-all flex items-center justify-center";
+                btn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    ดาวน์โหลดเกียรติบัตร
+                `;
+            }
+        }
+
+        // --- INTERACTION ---
+
+        function handleMissionClick(id, isCompleted) {
+            currentModalMission = id;
+            
+            if (id === 1) {
+                openRegisModal();
+            } else if (id === 2) {
+                if (userMissionStatus[0] == 1) {
+                    openQuizModal('Pretest');
+                } else {
+                    showLockAlert(1);
+                }
+            } else if (id === 3 || id === 4) {
+                if(!isCompleted) openQRModal();
+                else Swal.fire({ title: 'ภารกิจนี้สำเร็จแล้ว', icon: 'success', background: '#111', color: '#fff', timer: 1500, showConfirmButton: false });
+            } else if (id === 5) {
+                const allPreviousDone = userMissionStatus.slice(0, 4).every(s => s == 1);
+                if (allPreviousDone) {
+                    openQuizModal('Posttest');
+                } else {
+                    showLockAlert('1-4');
+                }
+            } else if (id === 6) {
+                if(!isCompleted) openEvalModal();
+                else Swal.fire({ title: 'ประเมินแล้ว', icon: 'success', background: '#111', color: '#fff', timer: 1500, showConfirmButton: false });
+            }
+        }
+
+        function showLockAlert(req) {
+            Swal.fire({
+                icon: 'warning', title: 'Locked', text: `กรุณาทำภารกิจที่ ${req} ให้เสร็จก่อน`,
+                background: '#111', color: '#fff', confirmButtonColor: '#00FFFF'
+            });
+        }
+
+        // --- MODALS ---
+
+        function openModal(title, content) {
+            document.getElementById('modal-title').innerText = title;
+            const body = document.getElementById('modal-body');
+            body.innerHTML = '';
+            body.appendChild(content);
+            document.getElementById('modal-template').classList.remove('opacity-0', 'pointer-events-none');
+            document.body.classList.add('modal-active');
+        }
+
+        function closeAllModals() {
+            document.getElementById('modal-template').classList.add('opacity-0', 'pointer-events-none');
+            document.body.classList.remove('modal-active');
+            stopTimer();
+        }
+
+        // 1. Regis Modal
+        function openRegisModal() {
+            const tpl = document.getElementById('regis-form-template').content.cloneNode(true);
+            const deptSelect = tpl.querySelector('#input-dept');
+            
+            // Populate Depts
+            deptGroup1.forEach(d => {
+                let opt = document.createElement('option'); opt.value = d; opt.text = d; opt.className = 'opt-group-1';
+                deptSelect.appendChild(opt);
+            });
+            deptGroup2.forEach(d => {
+                let opt = document.createElement('option'); opt.value = d; opt.text = d; opt.className = 'opt-group-2';
+                deptSelect.appendChild(opt);
+            });
+
+            // Pre-fill
+            if (userData && userData.name) {
+                tpl.querySelector('#input-title').value = userData.title || '';
+                tpl.querySelector('#input-name').value = userData.name || '';
+                tpl.querySelector('#input-age').value = userData.age || '';
+                tpl.querySelector('#input-gender').value = userData.gender || '';
+                tpl.querySelector('#input-dept').value = userData.dept || '';
+            }
+            openModal('ลงทะเบียน / แก้ไขข้อมูล', tpl);
+        }
+
+        // 3-4. QR Modal
+        function openQRModal() {
+            const tpl = document.getElementById('qr-instruction-template').content.cloneNode(true);
+            openModal('สแกน QR Code ฐานกิจกรรม', tpl);
+        }
+
+        // 6. Eval Modal
+        function openEvalModal() {
+            const tpl = document.getElementById('eval-form-template').content.cloneNode(true);
+            const container = tpl.getElementById('eval-questions-container');
+
+            evalQuestions.forEach((q, idx) => {
+                const div = document.createElement('div');
+                div.className = "bg-gray-800 p-4 rounded-lg mb-4 border border-gray-700";
+                div.innerHTML = `
+                    <p class="text-neon-teal font-medium mb-3 text-sm">${q}</p>
+                    <div class="flex justify-between items-center px-2">
+                        ${[5,4,3,2,1].map(score => `
+                            <label class="flex flex-col items-center cursor-pointer">
+                                <input type="radio" name="q${idx+1}" value="${score}" required class="eval-radio mb-1">
+                                <span class="text-xs text-gray-400">${score}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            openModal('แบบประเมินความพึงพอใจ', tpl);
+        }
+
+        // 2 & 5. Quiz Modals
+        async function openQuizModal(type) {
+            currentTestType = type;
+            showLoading(true, "Loading Quiz...");
+            
+            if (quizQuestions.length === 0) {
                 const data = await callGAS({ action: 'getQuestions' });
                 if (data.status === 'success') {
                     quizQuestions = data.data;
                 } else {
-                    throw new Error(data.message || 'Failed to fetch questions');
+                    showLoading(false);
+                    Swal.fire('Error', 'Failed to load questions', 'error');
+                    return;
                 }
-            } catch (error) {
-                console.error('Fetch Questions Error:', error);
-                Swal.fire({ icon: 'error', title: 'โหลดข้อสอบไม่สำเร็จ', text: 'กรุณาลองใหม่อีกครั้ง', confirmButtonColor: '#14b8a6', background: '#1E1E1E', color: '#E0E0E0' });
-                closeAllModals();
-            } finally {
-                showLoading(false);
+            }
+            showLoading(false);
+
+            const body = document.getElementById('modal-body');
+            body.innerHTML = ''; // Clear prev content
+
+            if (type === 'Posttest') {
+                const intro = document.getElementById('posttest-intro-template').content.cloneNode(true);
+                intro.querySelector('#intro-name').innerText = userProfile.displayName;
+                openModal('Post-test', intro);
+            } else {
+                renderQuizForm(body, false);
+                openModal(type === 'Pretest' ? 'Pre-test' : 'Post-test', body);
             }
         }
 
-        // --- MISSION 1: REGISTRATION ---
-        function openRegisModal() {
-            const modal = document.getElementById('modal-template');
-            document.getElementById('modal-title').innerText = 'ลงทะเบียน (Mission 1)';
-            
-            const template = document.getElementById('regis-form-template');
-            const modalBody = document.getElementById('modal-body');
-            modalBody.innerHTML = '';
-            modalBody.appendChild(template.content.cloneNode(true));
+        function startPosttestQuiz() {
+            const body = document.getElementById('modal-body');
+            body.innerHTML = '';
+            renderQuizForm(body, true);
+            startTimer();
+        }
 
-            // Populate Department Options
-            const deptSelect = modalBody.querySelector('select[name="dept"]');
-            deptOptions.forEach(dept => {
-                const option = document.createElement('option');
-                option.value = dept;
-                option.textContent = dept;
-                deptSelect.appendChild(option);
+        function renderQuizForm(container, showTimer) {
+            const tpl = document.getElementById('quiz-template').content.cloneNode(true);
+            if (showTimer) tpl.querySelector('#timer-container').classList.remove('hidden');
+            
+            const form = tpl.querySelector('#quiz-form');
+            
+            // Round selection for Pretest
+            if (currentTestType === 'Pretest') {
+                form.innerHTML += `
+                    <div class="bg-gray-800 p-4 rounded border border-gray-700 mb-6">
+                        <label class="block mb-2 text-neon-green">รุ่นการอบรม</label>
+                        <div class="flex space-x-4">
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="round" value="รุ่น16ธ.ค." required class="quiz-radio"> <span class="ml-2">16 ธ.ค.</span></label>
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="round" value="รุ่น18ธ.ค." required class="quiz-radio"> <span class="ml-2">18 ธ.ค.</span></label>
+                        </div>
+                    </div>`;
+            }
+
+            // Questions
+            quizQuestions.forEach((q, i) => {
+                let choices = [
+                    {k:'A', v:q.Choice_A}, {k:'B', v:q.Choice_B}, {k:'C', v:q.Choice_C}, {k:'D', v:q.Choice_D}
+                ];
+                shuffleArray(choices);
+
+                form.innerHTML += `
+                    <div class="bg-gray-800 p-5 rounded border border-gray-700">
+                        <p class="text-lg text-white mb-3">${i+1}. ${q.Question}</p>
+                        <div class="space-y-2">
+                            ${choices.map(c => `
+                                <label class="flex items-center cursor-pointer p-2 hover:bg-gray-700 rounded transition-colors">
+                                    <input type="radio" name="q_${q.ID}" value="${c.k}" required class="quiz-radio text-neon-teal">
+                                    <span class="text-gray-300 ml-2">${c.v}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>`;
             });
 
-            openModal();
+            tpl.querySelector('#submit-quiz-btn').onclick = submitQuiz;
+            if (container.tagName === 'DIV') { // If container is modal body
+               container.appendChild(tpl);
+            } else { // If we passed 'body' but logic expects to append to it
+               container.appendChild(tpl);
+            }
         }
+
+        // --- SUBMISSION HANDLERS ---
 
         async function submitRegistration() {
             const form = document.getElementById('regis-form');
             if (!form.checkValidity()) { form.reportValidity(); return; }
-
-            showLoading(true, 'กำลังบันทึกข้อมูล...');
-            const formData = new FormData(form);
+            
+            showLoading(true, "Saving...");
+            const fd = new FormData(form);
             const payload = {
                 action: 'register',
                 userId: userProfile.userId,
                 displayName: userProfile.displayName,
                 pictureProfile: userProfile.pictureUrl,
-                title: formData.get('title'),
-                name: formData.get('name'),
-                age: formData.get('age'),
-                gender: formData.get('gender'),
-                dept: formData.get('dept')
+                title: fd.get('title'), name: fd.get('name'), age: fd.get('age'), gender: fd.get('gender'), dept: fd.get('dept')
             };
 
-            try {
-                const data = await callGAS(payload);
-                if (data.status === 'success') {
-                    userMissionStatus = data.data.missions;
-                    renderStamps();
-                    closeAllModals();
-                    Swal.fire({
-                        icon: 'success', title: 'ลงทะเบียนสำเร็จ!', text: 'คุณได้รับแสตมป์ดวงที่ 1 แล้ว',
-                        timer: 2000, showConfirmButton: false, background: '#1E1E1E', color: '#E0E0E0'
-                    });
-                } else { throw new Error(data.message); }
-            } catch (error) {
-                console.error(error);
-                Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: error.message, confirmButtonColor: '#14b8a6', background: '#1E1E1E', color: '#E0E0E0' });
-            } finally {
+            const data = await callGAS(payload);
+            if (data.status === 'success') {
+                userData = payload;
+                userMissionStatus = data.data.missions;
+                renderStamps(false);
+                closeAllModals();
                 showLoading(false);
+                Swal.fire({icon:'success', title:'บันทึกสำเร็จ', background:'#111', color:'#fff', timer:1500, showConfirmButton:false});
             }
-        }
-
-        // --- MISSION 2 & 5: QUIZ (Pre-test & Post-test) ---
-        async function openQuizModal(type) {
-            currentTestType = type;
-            await fetchQuestions(); // Ensure questions are loaded
-
-            const modal = document.getElementById('modal-template');
-            const modalTitle = document.getElementById('modal-title');
-            const modalBody = document.getElementById('modal-body');
-            modalBody.innerHTML = '';
-
-            if (type === 'Pretest') {
-                modalTitle.innerText = 'แบบทดสอบก่อนเรียน (Pre-test)';
-                renderQuizForm(modalBody, false);
-                openModal();
-            } else if (type === 'Posttest') {
-                modalTitle.innerText = 'แบบทดสอบหลังเรียน (Post-test)';
-                const introTemplate = document.getElementById('posttest-intro-template');
-                modalBody.appendChild(introTemplate.content.cloneNode(true));
-                modalBody.querySelector('#intro-name').innerText = userProfile.displayName;
-                openModal();
-            }
-        }
-
-        function startPosttestQuiz() {
-            const modalBody = document.getElementById('modal-body');
-            modalBody.innerHTML = '';
-            renderQuizForm(modalBody, true);
-            startTimer();
-        }
-
-        function renderQuizForm(container, showTimer) {
-            const template = document.getElementById('quiz-template');
-            container.appendChild(template.content.cloneNode(true));
-            
-            const timerContainer = container.querySelector('#timer-container');
-            if (showTimer) { timerContainer.classList.remove('hidden'); }
-
-            const quizForm = container.querySelector('#quiz-form');
-            
-            // Round selection for Pre-test only
-            if (currentTestType === 'Pretest') {
-                const roundDiv = document.createElement('div');
-                roundDiv.className = "bg-gray-800 p-4 rounded-lg border border-gray-700 mb-6";
-                roundDiv.innerHTML = `
-                    <label class="block text-sm font-bold mb-3 text-teal-300">เลือกรุ่นการอบรม</label>
-                    <div class="flex space-x-4">
-                        <label class="inline-flex items-center choice-label cursor-pointer">
-                            <input type="radio" name="round" value="รุ่น16ธ.ค." required class="quiz-radio text-teal-500">
-                            <span class="ml-2">รุ่น 16 ธ.ค.</span>
-                        </label>
-                        <label class="inline-flex items-center choice-label cursor-pointer">
-                            <input type="radio" name="round" value="รุ่น18ธ.ค." required class="quiz-radio text-teal-500">
-                            <span class="ml-2">รุ่น 18 ธ.ค.</span>
-                        </label>
-                    </div>
-                `;
-                quizForm.appendChild(roundDiv);
-            }
-
-            quizQuestions.forEach((q, index) => {
-                const questionDiv = document.createElement('div');
-                questionDiv.className = "bg-gray-800 p-5 rounded-lg border border-gray-700 shadow-sm";
-                
-                const questionTitle = document.createElement('p');
-                questionTitle.className = "font-semibold text-lg mb-4 text-teal-100";
-                questionTitle.innerText = `${index + 1}. ${q.Question}`;
-                questionDiv.appendChild(questionTitle);
-
-                const choicesDiv = document.createElement('div');
-                choicesDiv.className = "space-y-3";
-
-                // Create choice objects and shuffle them
-                let choices = [
-                    { key: 'A', value: q.Choice_A }, { key: 'B', value: q.Choice_B },
-                    { key: 'C', value: q.Choice_C }, { key: 'D', value: q.Choice_D }
-                ];
-                shuffleArray(choices);
-
-                choices.forEach(choice => {
-                    const label = document.createElement('label');
-                    label.className = "flex items-center space-x-3 p-3 rounded-md hover:bg-gray-700 transition-colors cursor-pointer choice-label";
-                    label.innerHTML = `
-                        <input type="radio" name="q_${q.ID}" value="${choice.key}" required class="quiz-radio text-teal-500">
-                        <span class="text-gray-200">${choice.value}</span>
-                    `;
-                    choicesDiv.appendChild(label);
-                });
-                questionDiv.appendChild(choicesDiv);
-                quizForm.appendChild(questionDiv);
-            });
-
-            container.querySelector('#submit-quiz-btn').onclick = submitQuiz;
         }
 
         async function submitQuiz() {
             const form = document.getElementById('quiz-form');
-            if (!form.checkValidity()) { 
-                form.reportValidity();
-                Swal.fire({ icon: 'warning', title: 'กรุณาตอบให้ครบทุกข้อ', confirmButtonColor: '#14b8a6', background: '#1E1E1E', color: '#E0E0E0' });
-                return; 
-            }
-
-            let durationSec = 0;
-            if (currentTestType === 'Posttest') {
-                stopTimer();
-                durationSec = (performance.now() - startTime) / 1000;
-            }
-
-            showLoading(true, 'กำลังส่งคำตอบ...');
-
-            const formData = new FormData(form);
-            let score = 0;
-            let wrongAnswers = [];
-            let selectedRound = userRound; // Use stored round by default
-
-            if (currentTestType === 'Pretest') {
-                selectedRound = formData.get('round'); // Get from form for pretest
-                userRound = selectedRound; // Update global userRound
-            }
-
+            if (!form.checkValidity()) { form.reportValidity(); return; }
+            
+            stopTimer();
+            showLoading(true, "Submitting...");
+            
+            const fd = new FormData(form);
+            let score = 0, wrong = [];
+            
             quizQuestions.forEach(q => {
-                const userAnswer = formData.get(`q_${q.ID}`);
-                if (userAnswer === q.Correct_Ref) {
-                    score++;
-                } else {
-                    wrongAnswers.push(q.ID);
-                }
+                if (fd.get(`q_${q.ID}`) === q.Correct_Ref) score++;
+                else wrong.push(q.ID);
             });
+
+            let round = currentTestType === 'Pretest' ? fd.get('round') : userRound;
+            let duration = currentTestType === 'Posttest' ? (performance.now() - startTime) / 1000 : 0;
 
             const payload = {
                 action: 'submitTest',
-                userId: userProfile.userId,
-                displayName: userProfile.displayName,
-                round: selectedRound,
-                type: currentTestType,
-                score: score,
-                duration_sec: durationSec,
-                wrong_answer: wrongAnswers.join(',')
+                userId: userProfile.userId, displayName: userProfile.displayName,
+                round: round, type: currentTestType,
+                score: score, duration_sec: duration, wrong_answer: wrong.join(',')
             };
 
-            try {
-                const data = await callGAS(payload);
-                if (data.status === 'success') {
-                    userMissionStatus = data.data.missions;
-                    renderStamps();
-                    
-                    if (currentTestType === 'Posttest') {
-                        showTestResult(score, durationSec);
-                    } else {
-                        closeAllModals();
-                        Swal.fire({
-                            icon: 'success', title: 'ส่งแบบทดสอบสำเร็จ!', text: `คุณได้ ${score} / 20 คะแนน`,
-                            confirmButtonColor: '#14b8a6', background: '#1E1E1E', color: '#E0E0E0'
-                        });
-                    }
-                } else { throw new Error(data.message); }
-            } catch (error) {
-                console.error(error);
-                Swal.fire({ icon: 'error', title: 'ส่งคำตอบไม่สำเร็จ', text: error.message, confirmButtonColor: '#14b8a6', background: '#1E1E1E', color: '#E0E0E0' });
-            } finally {
+            const data = await callGAS(payload);
+            if (data.status === 'success') {
+                userMissionStatus = data.data.missions;
+                renderStamps(false);
                 showLoading(false);
+                
+                if (currentTestType === 'Pretest') {
+                    userRound = round;
+                    closeAllModals();
+                    Swal.fire({title:`ได้ ${score}/20 คะแนน`, icon:'success', background:'#111', color:'#fff'});
+                } else {
+                    showTestResult(score, duration);
+                }
             }
         }
 
         function showTestResult(score, duration) {
-            const modalBody = document.getElementById('modal-body');
-            modalBody.innerHTML = '';
-            const template = document.getElementById('quiz-result-template');
-            modalBody.appendChild(template.content.cloneNode(true));
+            const body = document.getElementById('modal-body');
+            body.innerHTML = '';
+            const tpl = document.getElementById('quiz-result-template').content.cloneNode(true);
+            body.appendChild(tpl);
 
-            document.getElementById('modal-title').innerText = 'ผลการทดสอบ Post-test';
-
-            // Animate Score and Time
-            const scoreEl = document.getElementById('result-score');
-            const timeEl = document.getElementById('result-time');
+            // Animate Score
+            anime({ targets: '#result-score', innerHTML: [0, score], round: 1, easing: 'easeInOutExpo' });
             
-            anime({
-                targets: scoreEl,
-                innerHTML: [0, score],
-                round: 1,
-                easing: 'easeInOutExpo',
-                duration: 1500
-            });
-
-            const formattedTime = formatTime(duration);
-            // Simple animation for time string is complex, just set it for now. 
-            // Could use a customanime function to increment time string if really needed.
-            timeEl.innerText = formattedTime; 
-            anime({
-                targets: timeEl,
-                opacity: [0, 1],
-                translateY: [20, 0],
-                easing: 'easeOutExpo',
-                duration: 1500,
-                delay: 500
-            });
-
-            // Show Ranking Section
+            document.getElementById('result-time').innerText = formatTime(duration);
             document.getElementById('ranking-section').classList.remove('hidden');
         }
 
         async function calculateRanking() {
-            const rankingBtn = document.getElementById('ranking-btn');
-            const rankingResult = document.getElementById('ranking-result');
-            const rankNumEl = document.getElementById('rank-num');
-            const totalParticipantsEl = document.getElementById('total-participants');
-            const loadingText = rankingResult.querySelector('.animate-pulse');
-
-            rankingBtn.disabled = true;
-            rankingBtn.innerHTML = '<div class="spinner w-5 h-5 border-2 mr-2"></div> กำลังคำนวณ...';
-            rankingResult.classList.remove('hidden');
-            loadingText.classList.remove('hidden');
-            rankNumEl.parentElement.classList.add('hidden');
+            const btn = document.getElementById('ranking-btn');
+            btn.innerText = 'กำลังคำนวณ...';
             
-            try {
-                // Use the round selected during pre-test/stored
-                if (!userRound) throw new Error("ไม่พบข้อมูลรุ่นการอบรมของคุณ");
+            const data = await callGAS({ action: 'getRanking', userId: userProfile.userId, round: userRound });
+            
+            if (data.status === 'success') {
+                document.getElementById('ranking-result').classList.remove('hidden');
+                document.getElementById('rank-num').innerText = data.data.rank;
+                document.getElementById('total-participants').innerText = data.data.total;
+                
+                anime({ targets: '#rank-num', scale: [0.5, 1], opacity: [0, 1] });
+            }
+            btn.innerText = 'คำนวณใหม่';
+        }
 
-                const data = await callGAS({
-                    action: 'getRanking',
-                    userId: userProfile.userId,
-                    round: userRound
-                });
+        async function submitEvaluation() {
+            const form = document.getElementById('eval-form');
+            const fd = new FormData(form);
+            
+            // Check completeness manually
+            let complete = true;
+            for(let i=1; i<=10; i++) if(!fd.get(`q${i}`)) complete = false;
+            
+            if (!complete) {
+                Swal.fire({icon:'warning', title:'กรุณาประเมินให้ครบ', background:'#111', color:'#fff'});
+                return;
+            }
 
-                if (data.status === 'success') {
-                    loadingText.classList.add('hidden');
-                    rankNumEl.innerText = data.data.rank;
-                    totalParticipantsEl.innerText = data.data.total;
-                    rankNumEl.parentElement.classList.remove('hidden');
+            showLoading(true, "Saving...");
+            let payload = { action: 'submitEval', userId: userProfile.userId, comment: fd.get('comment') };
+            for(let i=1; i<=10; i++) payload[`q${i}`] = fd.get(`q${i}`);
 
-                    anime({
-                        targets: rankNumEl,
-                        scale: [0.5, 1],
-                        opacity: [0, 1],
-                        easing: 'easeOutElastic(1, .6)',
-                        duration: 1200
-                    });
-
-                } else { throw new Error(data.message); }
-            } catch (error) {
-                console.error(error);
-                rankingResult.classList.add('hidden');
-                Swal.fire({ icon: 'error', title: 'คำนวณอันดับไม่สำเร็จ', text: error.message, confirmButtonColor: '#14b8a6', background: '#1E1E1E', color: '#E0E0E0' });
-            } finally {
-                rankingBtn.disabled = false;
-                rankingBtn.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
-                    คำนวณอันดับใหม่
-                `;
+            const data = await callGAS(payload);
+            if (data.status === 'success') {
+                userMissionStatus = data.data.missions;
+                renderStamps(false);
+                checkCertificateStatus();
+                closeAllModals();
+                showLoading(false);
+                Swal.fire({icon:'success', title:'ขอบคุณครับ', background:'#111', color:'#fff', timer:1500, showConfirmButton:false});
             }
         }
 
-        // --- TIMER FUNCTIONS ---
+        async function generateCertificate() {
+            showLoading(true, "Creating PDF...");
+            try {
+                const data = await callGAS({ action: 'generateCert', userId: userProfile.userId });
+                showLoading(false);
+                if (data.status === 'success') {
+                    if (liff.isInClient()) {
+                        await liff.sendMessages([{ type: 'text', text: `เกียรติบัตรของคุณ: ${data.url}` }]);
+                    }
+                    Swal.fire({
+                        icon: 'success', 
+                        html: `<a href="${data.url}" target="_blank" class="text-neon-teal underline text-lg">เปิดไฟล์ PDF</a>`, 
+                        background: '#111', color: '#fff'
+                    });
+                }
+            } catch (e) {
+                showLoading(false);
+                Swal.fire('Error', e.message, 'error');
+            }
+        }
+
+        // --- HELPER FUNCTIONS (RESTORED) ---
+
         function startTimer() {
             startTime = performance.now();
             const timerEl = document.getElementById('timer');
             timerInterval = setInterval(() => {
                 const elapsedTime = (performance.now() - startTime) / 1000;
-                timerEl.innerText = formatTime(elapsedTime);
-            }, 73); // Update frequently for smooth milliseconds
+                if(timerEl) timerEl.innerText = formatTime(elapsedTime);
+            }, 80);
         }
 
         function stopTimer() {
-            clearInterval(timerInterval);
+            if (timerInterval) clearInterval(timerInterval);
         }
 
         function formatTime(seconds) {
@@ -712,95 +870,28 @@
             return `${pad(mins)}:${pad(secs)}.${pad(millis)}`;
         }
 
-        function pad(num) { return num.toString().padStart(2, '0'); }
-        function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } }
-
-
-        // --- UI FUNCTIONS ---
-        function renderStamps() {
-            const grid = document.getElementById('stamp-grid');
-            grid.innerHTML = '';
-
-            missions.forEach((mission, index) => {
-                const isCompleted = userMissionStatus[index] == 1;
-                const imgUrl = isCompleted ? mission.color : mission.grey;
-                
-                const div = document.createElement('div');
-                div.className = 'aspect-square relative rounded-xl overflow-hidden shadow-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl group bg-gray-900 border-2 border-transparent';
-                
-                if (isCompleted) {
-                    div.classList.add('border-teal-500', 'shadow-teal-500/30');
-                }
-
-                // Click Handlers
-                if (!isCompleted) {
-                    if (mission.id === 1) { // Regis
-                        div.style.cursor = 'pointer'; div.onclick = openRegisModal;
-                    } else if (mission.id === 2) { // Pre-test
-                        // Check if Mission 1 is done
-                        if (userMissionStatus[0] == 1) { div.style.cursor = 'pointer'; div.onclick = () => openQuizModal('Pretest'); }
-                        else { div.style.cursor = 'not-allowed'; div.onclick = () => showLockedAlert(1); div.classList.add('opacity-50', 'hover:scale-100'); }
-                    } else if (mission.id === 5) { // Post-test
-                        // Check if Mission 1-4 are done
-                        const allPreviousDone = userMissionStatus.slice(0, 4).every(status => status == 1);
-                         if (allPreviousDone) { div.style.cursor = 'pointer'; div.onclick = () => openQuizModal('Posttest'); }
-                        else { div.style.cursor = 'not-allowed'; div.onclick = () => showLockedAlert('1-4'); div.classList.add('opacity-50', 'hover:scale-100'); }
-                    } else {
-                         div.style.cursor = 'not-allowed'; div.onclick = () => Swal.fire({ icon: 'info', title: 'ภารกิจนี้ยังไม่เปิด', text: 'กรุณารอติดตามที่จุดกิจกรรม', confirmButtonColor: '#14b8a6', background: '#1E1E1E', color: '#E0E0E0' });
-                    }
-                } else {
-                    // Completed
-                    div.style.cursor = 'default';
-                    div.onclick = () => Swal.fire({ icon: 'success', title: 'ภารกิจสำเร็จ!', text: `คุณผ่านภารกิจ "${mission.name}" แล้ว`, confirmButtonColor: '#14b8a6', background: '#1E1E1E', color: '#E0E0E0' });
-                }
-
-                div.innerHTML = `
-                    <img src="${imgUrl}" class="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90" alt="Mission ${mission.id}">
-                    ${!isCompleted && (mission.id === 2 || mission.id === 5) && (div.style.cursor !== 'pointer') ? '<div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></div>' : ''}
-                `;
-                // Remove tick mark as requested, color change is enough.
-                
-                grid.appendChild(div);
-
-                // Animate in
-                anime({
-                    targets: div,
-                    opacity: [0, 1],
-                    translateY: [20, 0],
-                    delay: index * 100,
-                    easing: 'easeOutExpo'
-                });
-            });
+        function pad(num) {
+            return num.toString().padStart(2, '0');
         }
 
-        function showLockedAlert(requiredMissionId) {
-             Swal.fire({
-                icon: 'warning',
-                title: 'ภารกิจถูกล็อก',
-                text: `กรุณาทำภารกิจที่ ${requiredMissionId} ให้เสร็จก่อน`,
-                confirmButtonColor: '#14b8a6',
-                background: '#1E1E1E', color: '#E0E0E0'
-            });
-        }
-
-        function openModal() {
-            const modal = document.getElementById('modal-template');
-            modal.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
-            document.body.classList.add('modal-active');
-        }
-
-        function closeAllModals() {
-            const modal = document.getElementById('modal-template');
-            modal.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
-            document.body.classList.remove('modal-active');
-            stopTimer(); // Ensure timer stops if closing Post-test
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
         }
 
         function showLoading(isLoading, message = 'กำลังโหลดข้อมูล...') {
             const overlay = document.getElementById('loading-overlay');
-            const msgEl = overlay.querySelector('p');
-            msgEl.innerText = message;
-            overlay.style.display = isLoading ? 'flex' : 'none';
+            if (overlay) {
+                const msgEl = overlay.querySelector('p');
+                if (msgEl) msgEl.innerText = message;
+                overlay.style.display = isLoading ? 'flex' : 'none';
+            }
+        }
+        
+        function simulateScan() {
+            markMissionComplete(currentModalMission);
         }
 
         // Start App
