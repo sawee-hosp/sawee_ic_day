@@ -1,365 +1,367 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-  <base target="_top">
-  <title>IC Day Gamification Challenge</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <script charset="utf-8" src="https://static.line-scdn.net/liff/sdk/2.2.0/liff.js"></script>
-  <style>
-    /* ใช้ CSS เพื่อออกแบบให้เป็น Gamification และโหลดเร็ว */
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f8ff; /* สีฟ้าอ่อน ๆ */
-      color: #333;
-      padding: 20px;
-      text-align: center;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      background: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-    h1 {
-      color: #008080; /* สีเขียวเข้ม */
-      font-size: 1.8em;
-      margin-bottom: 20px;
-    }
-    .stamp-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin: 20px 0;
-    }
-    .stamp-item {
-      padding: 15px;
-      border-radius: 10px;
-      background-color: #eee;
-      border: 2px solid #ccc;
-      transition: all 0.3s;
-    }
-    .stamp-item.complete {
-      background-color: #90ee90; /* สีเขียวอ่อน */
-      border-color: #3cb371; /* สีเขียว */
-      box-shadow: 0 0 10px rgba(60, 179, 113, 0.7);
-    }
-    .stamp-icon {
-      font-size: 2em;
-      display: block;
-      margin-bottom: 5px;
-    }
-    .rank-display {
-      margin-top: 30px;
-      padding: 15px;
-      border: 2px dashed #ff4500;
-      background-color: #fffacd;
-      border-radius: 10px;
-    }
-    .big-number {
-      font-size: 3em;
-      color: #ff4500;
-      font-weight: bold;
-    }
-    button {
-      background-color: #008080;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: background-color 0.3s;
-    }
-    button:hover:not(:disabled) {
-      background-color: #006400;
-    }
-    button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-    .hidden { display: none; }
-  </style>
-</head>
-<body>
-
-<div class="container">
-  <h1 id="main-title">IC Day Challenge: สะสม 6 Stamp</h1>
-  
-  <div id="loading">กำลังโหลดข้อมูลและเชื่อมต่อ Line LIFF...</div>
-  <div id="app-content" class="hidden">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sawee IC Day Activity</title>
     
-    <div id="registration-form" class="hidden">
-      <h2>ลงทะเบียนร่วมกิจกรรม</h2>
-      <p>กรุณากรอกข้อมูลเพื่อลงทะเบียนรับสิทธิ์เข้าร่วม</p>
-      <form id="regForm">
-        <input type="text" id="name" placeholder="ชื่อ-นามสกุล" required><br><br>
-        <input type="text" id="agency" placeholder="หน่วยงาน/โรงพยาบาล" required><br><br>
-        <select id="gender" required>
-            <option value="">เพศ</option>
-            <option value="Male">ชาย</option>
-            <option value="Female">หญิง</option>
-            <option value="Other">อื่น ๆ</option>
-        </select><br><br>
-        <input type="number" id="age" placeholder="อายุ" required><br><br>
-        <button type="submit">ยืนยันการลงทะเบียน</button>
-      </form>
-    </div>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- LINE LIFF SDK -->
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Prompt Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-    <div id="activity-dashboard" class="hidden">
-      <h2>สถานะภารกิจ (Stamps)</h2>
-      <p>สวัสดีคุณ <span id="userNameDisplay">...</span></p>
-      <div class="stamp-grid" id="stampGrid">
-        </div>
-      
-      <div id="completion-message" class="hidden">
-        <h3>🎉 ยินดีด้วย! คุณสะสมครบ 6 Stamp แล้ว!</h3>
-        <p>สามารถรับ E-Certificate ได้ที่นี่:</p>
-        <button id="certificateBtn" onclick="window.open(CERTIFICATE_URL)">รับ E-Certificate</button>
-      </div>
-
-      <div class="rank-display">
-        <h3>🥇 อันดับ Posttest ปัจจุบัน</h3>
-        <p>คะแนนสูงสุดในโครงการคือ: <span id="topScoreDisplay">...</span></p>
-        <div id="myRankSection" class="hidden">
-            <p>อันดับของคุณคือ:</p>
-            <div class="big-number" id="myRankDisplay">...</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  // Global variables
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwYmw1YrTSTE7O-jUmuBIJi-lYvxMp16TISA0r6-iWX5-8KsjCztqdSF3PAejBT-D68/exec'; // **ต้องเปลี่ยน** URL ของ GAS ที่ Deploy
-  let USER_ID = '';
-  let STAMP_DATA = {};
-  const STAMP_LIST = [
-    { name: 'Register', title: 'ลงทะเบียน', icon: '👤', url: '#' },
-    { name: 'Pretest', title: 'ทำ Pretest', icon: '📝', url: 'URL_TO_PRETEST_FORM' }, // **ต้องเปลี่ยน**
-    { name: 'Check-in Handwash', title: 'ฐานล้างมือ', icon: '🧼', url: '#' }, // **สามารถเพิ่มปุ่มกดใน HTML หรือใช้ QR Code สแกนบันทึกก็ได้**
-    { name: 'Check-in PPE', title: 'ฐาน PPE', icon: '🧤', url: '#' }, // **สามารถเพิ่มปุ่มกดใน HTML หรือใช้ QR Code สแกนบันทึกก็ได้**
-    { name: 'Posttest', title: 'ทำ Posttest', icon: '💯', url: 'URL_TO_POSTTEST_FORM' }, // **ต้องเปลี่ยน**
-    { name: 'Evaluation', title: 'ประเมินโครงการ', icon: '⭐', url: 'URL_TO_EVALUATION_FORM' } // **ต้องเปลี่ยน**
-  ];
-
-  const CERTIFICATE_URL = 'URL_TO_YOUR_PDF_CERTIFICATE_TEMPLATE'; // **ต้องเปลี่ยน**
-
-  // ********** LIFF Initialization **********
-  function initializeLiff() {
-    liff.init({ liffId: '2008690634-O4vlZdND' }) // **ต้องเปลี่ยน** LIFF ID ของคุณ
-      .then(() => {
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
+        .modal { transition: opacity 0.25s ease; }
+        body.modal-active { overflow-x: hidden; overflow-y: visible !important; }
+        
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 9999; display: flex; justify-content: center; align-items: center;
+            flex-direction: column;
         }
-        USER_ID = liff.getDecodedIDToken().sub;
-        console.log('LIFF initialized. User ID:', USER_ID);
-        document.getElementById('loading').textContent = 'เชื่อมต่อ Line สำเร็จ... กำลังตรวจสอบสถานะ';
-        checkStatus();
-      })
-      .catch((err) => {
-        console.error('LIFF Initialization failed', err);
-        document.getElementById('loading').textContent = 'Error: ไม่สามารถเชื่อมต่อ LIFF ได้ กรุณาลองใหม่ หรือเปิดผ่าน Line Browser';
-      });
-  }
+        .spinner {
+            border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%;
+            width: 40px; height: 40px; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-blue-50 min-h-screen flex flex-col items-center">
 
-  // ********** GAS API Communication **********
-  function sendDataToGas(action, data) {
-    data.action = action;
-    data.userId = USER_ID;
-    
-    return fetch(GAS_URL, {
-      method: 'POST',
-      body: new URLSearchParams(data),
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    })
-    .then(res => res.json())
-    .catch(err => {
-      console.error('GAS Communication Error:', err);
-      return { status: 'error', message: 'เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์' };
-    });
-  }
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="spinner mb-2"></div>
+        <p class="text-gray-600 font-medium">กำลังโหลดข้อมูล...</p>
+    </div>
 
-  // ********** Status Management **********
-  async function checkStatus() {
-    const result = await sendDataToGas('getStatus', {});
-    document.getElementById('loading').classList.add('hidden');
-    document.getElementById('app-content').classList.remove('hidden');
+    <!-- Main Container -->
+    <div class="w-full max-w-md bg-white shadow-xl min-h-screen flex flex-col relative">
+        
+        <!-- Header -->
+        <div class="bg-teal-600 p-4 text-white text-center rounded-b-3xl shadow-md z-10">
+            <h1 class="text-2xl font-bold">Sawee IC Day</h1>
+            <p class="text-sm opacity-90">สะสมแสตมป์ให้ครบทั้ง 6 ภารกิจ</p>
+            <div id="user-info" class="mt-3 flex items-center justify-center space-x-2 hidden">
+                <img id="user-img" src="" alt="Profile" class="w-10 h-10 rounded-full border-2 border-white">
+                <span id="user-name" class="font-medium"></span>
+            </div>
+        </div>
 
-    if (result.status === 'success' && result.registered) {
-      document.getElementById('registration-form').classList.add('hidden');
-      document.getElementById('activity-dashboard').classList.remove('hidden');
-      STAMP_DATA = result.stamps;
-      
-      // Get user name from LIFF or GAS (for simplicity here, let's assume we fetch profile)
-      let profile = {};
-      if (liff.isLoggedIn()) {
-        profile = await liff.getProfile();
-        document.getElementById('userNameDisplay').textContent = profile.displayName;
-      }
+        <!-- Stamps Grid -->
+        <div class="flex-grow p-4 flex items-center justify-center">
+            <div class="grid grid-cols-3 gap-3 w-full" id="stamp-grid">
+                <!-- Images will be injected here by JS -->
+            </div>
+        </div>
 
-      renderStamps();
-      renderRank(result.rankInfo);
+        <!-- Footer -->
+        <div class="p-4 text-center text-xs text-gray-400">
+            &copy; 2025 Sawee Hospital
+        </div>
 
-    } else if (result.status === 'success' && !result.registered) {
-      // User not registered, show form
-      document.getElementById('registration-form').classList.remove('hidden');
-      document.getElementById('activity-dashboard').classList.add('hidden');
-      
-      // Prefill name if available from LIFF (optional)
-      if (liff.isLoggedIn()) {
-          const profile = await liff.getProfile();
-          // The name fetched from LIFF is typically the display name, but we need the full name from the user.
-          // document.getElementById('name').value = profile.displayName; 
-      }
+    </div>
 
-    } else {
-       alert('ไม่สามารถโหลดสถานะได้: ' + result.message);
-    }
-  }
+    <!-- Modal: Registration (Mission 1) -->
+    <div id="modal-regis" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+        <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+        
+        <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto max-h-[90vh]">
+            
+            <div class="modal-content py-4 text-left px-6">
+                <!-- Title -->
+                <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                    <p class="text-xl font-bold text-teal-600">ลงทะเบียน (Mission 1)</p>
+                    <div class="modal-close cursor-pointer z-50" onclick="toggleModal('modal-regis')">
+                        <svg class="fill-current text-black" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+                            <path d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z"></path>
+                        </svg>
+                    </div>
+                </div>
 
-  // ********** Registration Handler **********
-  document.getElementById('regForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('name').value;
-    const agency = document.getElementById('agency').value;
-    const gender = document.getElementById('gender').value;
-    const age = document.getElementById('age').value;
+                <!-- Form -->
+                <form id="regis-form" class="mt-4 space-y-3">
+                    
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-1">คำนำหน้าชื่อ</label>
+                        <select name="title" required class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <option value="">เลือกคำนำหน้า</option>
+                            <option value="นาย">นาย</option>
+                            <option value="นาง">นาง</option>
+                            <option value="นางสาว">นางสาว</option>
+                        </select>
+                    </div>
 
-    const data = { name, agency, gender, age };
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-1">ชื่อ-สกุล</label>
+                        <input type="text" name="name" required class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="ชื่อ นามสกุล">
+                    </div>
 
-    const result = await sendDataToGas('register', data);
-    
-    if (result.status === 'success') {
-      alert('ลงทะเบียนสำเร็จ! เริ่มกิจกรรมได้เลย');
-      checkStatus(); // Reload status and show dashboard
-    } else {
-      alert('ลงทะเบียนไม่สำเร็จ: ' + result.message);
-    }
-  });
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-1">อายุ</label>
+                        <input type="number" name="age" required class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="ระบุอายุ">
+                    </div>
 
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-1">เพศ</label>
+                        <select name="gender" required class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <option value="">เลือกเพศ</option>
+                            <option value="ชาย">ชาย</option>
+                            <option value="หญิง">หญิง</option>
+                        </select>
+                    </div>
 
-  // ********** Rendering and UI Updates **********
-  function renderStamps() {
-    const grid = document.getElementById('stampGrid');
-    grid.innerHTML = ''; // Clear previous content
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-1">หน่วยงาน</label>
+                        <select name="dept" required class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <option value="">เลือกหน่วยงาน</option>
+                            <option value="กลุ่มงานการพยาบาลผู้คลอด (LR)">กลุ่มงานการพยาบาลผู้คลอด (LR)</option>
+                            <option value="กลุ่มงานการแพทย์">กลุ่มงานการแพทย์</option>
+                            <option value="กลุ่มงานการแพทย์แผนไทยและการแพทย์ทางเลือก">กลุ่มงานการแพทย์แผนไทยและการแพทย์ทางเลือก</option>
+                            <option value="กลุ่มงานจิตเวชและยาเสพติด">กลุ่มงานจิตเวชและยาเสพติด</option>
+                            <option value="กลุ่มงานทันตกรรม">กลุ่มงานทันตกรรม</option>
+                            <option value="กลุ่มงานเทคนิคการแพทย์">กลุ่มงานเทคนิคการแพทย์</option>
+                            <option value="กลุ่มงานบริการด้านปฐมภูมิและองค์รวม">กลุ่มงานบริการด้านปฐมภูมิและองค์รวม</option>
+                            <option value="กลุ่มงานบริหารทั่วไป">กลุ่มงานบริหารทั่วไป</option>
+                            <option value="กลุ่มงานประกันสุขภาพและสารสนเทศทางการแพทย์">กลุ่มงานประกันสุขภาพและสารสนเทศทางการแพทย์</option>
+                            <option value="กลุ่มงานรังสีวิทยา">กลุ่มงานรังสีวิทยา</option>
+                            <option value="กลุ่มเวชกรรมฟื้นฟู">กลุ่มเวชกรรมฟื้นฟู</option>
+                            <option value="คลินิกพิเศษ">คลินิกพิเศษ</option>
+                            <option value="งานการพยาบาลผู้ป่วยนอก (OPD)">งานการพยาบาลผู้ป่วยนอก (OPD)</option>
+                            <option value="งานการพยาบาลผู้ป่วยใน (IPD)">งานการพยาบาลผู้ป่วยใน (IPD)</option>
+                            <option value="งานการพยาบาลผู้ป่วยอุบัติเหตุและฉุกเฉิน (ER)">งานการพยาบาลผู้ป่วยอุบัติเหตุและฉุกเฉิน (ER)</option>
+                            <option value="งานจ่ายกลางและซักฟอก">งานจ่ายกลางและซักฟอก</option>
+                            <option value="งานฝากครรภ์ (ANC)">งานฝากครรภ์ (ANC)</option>
+                            <option value="แม่บ้าน">แม่บ้าน</option>
+                            <option value="กลุ่มงานอื่นๆ">กลุ่มงานอื่นๆ</option>
+                            <option value="รพ.สต.ท่าหิน">รพ.สต.ท่าหิน</option>
+                            <option value="รพ.สต.ด่านสวี">รพ.สต.ด่านสวี</option>
+                            <option value="รพ.สต.เขาทะลุ">รพ.สต.เขาทะลุ</option>
+                            <option value="รพ.สต.เขาค่าย">รพ.สต.เขาค่าย</option>
+                            <option value="รพ.สต.ปากแพรก">รพ.สต.ปากแพรก</option>
+                            <option value="รพ.สต.สวี">รพ.สต.สวี</option>
+                            <option value="รพ.สต.นาสัก">รพ.สต.นาสัก</option>
+                            <option value="รพ.สต.บ้านไทยพัฒนา">รพ.สต.บ้านไทยพัฒนา</option>
+                            <option value="รพ.สต.บ้านแก่งกระทั่ง">รพ.สต.บ้านแก่งกระทั่ง</option>
+                            <option value="รพ.สต.บ้านคสองน้อย">รพ.สต.บ้านคสองน้อย</option>
+                            <option value="รพ.สต.ทุ่งระยะ">รพ.สต.ทุ่งระยะ</option>
+                            <option value="รพ.สต.บ้านดอนทราย">รพ.สต.บ้านดอนทราย</option>
+                            <option value="รพ.สต.วิสัยใตั">รพ.สต.วิสัยใตั</option>
+                            <option value="รพ.สต.ครน">รพ.สต.ครน</option>
+                            <option value="รพ.สต.บ้านควนสามัคคี">รพ.สต.บ้านควนสามัคคี</option>
+                            <option value="รพ.สต.บ้านน้ำฉา">รพ.สต.บ้านน้ำฉา</option>
+                            <option value="สสอ.สวี">สสอ.สวี</option>
+                        </select>
+                    </div>
 
-    let allComplete = true;
+                    <div class="pt-4 flex justify-end">
+                        <button type="button" onclick="submitRegistration()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded w-full shadow">
+                            บันทึกข้อมูล
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-    STAMP_LIST.forEach(stamp => {
-      const isComplete = STAMP_DATA[stamp.name] || false;
-      const item = document.createElement('div');
-      item.className = 'stamp-item' + (isComplete ? ' complete' : '');
-      item.innerHTML = `<span class="stamp-icon">${isComplete ? '✅' : stamp.icon}</span>${stamp.title}`;
+    <script>
+        // --- CONFIGURATION ---
+        const LIFF_ID = "2008690634-O4vlZdND";
+        // ใส่ URL ที่ได้จากการ Deploy Web App ของคุณที่นี่
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwYmw1YrTSTE7O-jUmuBIJi-lYvxMp16TISA0r6-iWX5-8KsjCztqdSF3PAejBT-D68/exec";
 
-      // Logic for stamping (e.g., Check-in bases)
-      if (stamp.name.startsWith('Check-in') && !isComplete) {
-          const btn = document.createElement('button');
-          btn.textContent = 'เช็คอิน';
-          btn.onclick = () => handleCheckIn(stamp.name);
-          item.appendChild(btn);
-      } 
-      // Logic for external forms (e.g., Pretest, Posttest, Evaluation)
-      else if (stamp.url !== '#' && !isComplete) {
-          const btn = document.createElement('button');
-          btn.textContent = 'เริ่มทำ';
-          btn.onclick = () => window.open(stamp.url);
-          item.appendChild(btn);
-      }
-      // Note: You must ensure that after a user completes an external Google Form (Pretest, Posttest, Evaluation),
-      // the Posttest submission function *must* also be triggered, either manually here (for the purpose of this demo)
-      // or automatically via another GAS endpoint the form submission triggers.
-      // For this demo, we'll rely on the user manually submitting the posttest *score* for Stamp 5.
-      else if (stamp.name === 'Posttest' && !isComplete) {
-           const btn = document.createElement('button');
-           btn.textContent = 'บันทึกคะแนน (Demo)';
-           btn.onclick = () => submitPostTestDemo();
-           item.appendChild(btn);
-      }
-      
-      grid.appendChild(item);
-      if (!isComplete) {
-          allComplete = false;
-      }
-    });
+        const missions = [
+            { id: 1, grey: "https://i.ibb.co/1t01R06C/3.png", color: "https://i.ibb.co/tTh0Q1vG/2.png", isClickable: true },
+            { id: 2, grey: "https://i.ibb.co/992gtTff/5.png", color: "https://i.ibb.co/4n7shj8X/4.png", isClickable: false },
+            { id: 3, grey: "https://i.ibb.co/MxjnqNj6/7.png", color: "https://i.ibb.co/JRjjpxrZ/6.png", isClickable: false },
+            { id: 4, grey: "https://i.ibb.co/sp80k8YW/9.png", color: "https://i.ibb.co/3mSmgFhg/8.png", isClickable: false },
+            { id: 5, grey: "https://i.ibb.co/FbHT2Ggz/11.png", color: "https://i.ibb.co/Xr7t3MHN/10.png", isClickable: false },
+            { id: 6, grey: "https://i.ibb.co/BKBJH9cX/13.png", color: "https://i.ibb.co/n8V2tWv7/12.png", isClickable: false }
+        ];
 
-    if (allComplete) {
-        document.getElementById('completion-message').classList.remove('hidden');
-    } else {
-        document.getElementById('completion-message').classList.add('hidden');
-    }
-  }
+        let userProfile = null;
+        let userMissionStatus = [0, 0, 0, 0, 0, 0];
 
-  function renderRank(rankInfo) {
-    if (!rankInfo || !rankInfo.userRank) {
-        // Posttest not done yet
-        document.getElementById('topScoreDisplay').textContent = rankInfo.topRankScore ? `${rankInfo.topRankScore} คะแนน` : 'ยังไม่มีข้อมูล';
-        document.getElementById('myRankSection').classList.add('hidden');
-        return;
-    }
-    
-    document.getElementById('topScoreDisplay').textContent = `${rankInfo.topRankScore} คะแนน`;
-    document.getElementById('myRankDisplay').textContent = `#${rankInfo.userRank}`;
-    document.getElementById('myRankSection').classList.remove('hidden');
-    
-    // Highlight if the user is rank 1
-    if (rankInfo.userRank === 1) {
-        document.getElementById('myRankDisplay').style.color = 'gold';
-        document.getElementById('myRankDisplay').style.fontSize = '4em';
-    } else {
-         document.getElementById('myRankDisplay').style.color = '#ff4500';
-         document.getElementById('myRankDisplay').style.fontSize = '3em';
-    }
-  }
+        // --- INITIALIZATION ---
+        async function main() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+                
+                userProfile = await liff.getProfile();
+                
+                // Show Profile UI
+                document.getElementById('user-img').src = userProfile.pictureUrl || 'https://via.placeholder.com/40';
+                document.getElementById('user-name').innerText = userProfile.displayName;
+                document.getElementById('user-info').classList.remove('hidden');
 
-  // ********** Stamp Handlers **********
-  async function handleCheckIn(stampName) {
-      if (STAMP_DATA[stampName]) {
-          alert('คุณทำภารกิจนี้ไปแล้ว!');
-          return;
-      }
-      
-      const result = await sendDataToGas('recordStamp', { stampName });
-      
-      if (result.status === 'success') {
-          alert(`เช็คอิน ${stampName.replace('Check-in', '')} สำเร็จ!`);
-          checkStatus(); // Refresh status
-      } else {
-          alert('เช็คอินไม่สำเร็จ: ' + result.message);
-      }
-  }
-  
-  // DEMO: Function to simulate Posttest submission (in a real app, this should come from a form submit handler)
-  async function submitPostTestDemo() {
-      // **In a real scenario, this data (score, time) would come from the posttest form submission**
-      const score = parseInt(prompt("DEMO: กรุณากรอกคะแนน Posttest (0-100):"));
-      const timeTakenSeconds = parseFloat(prompt("DEMO: กรุณากรอกเวลาที่ใช้ทำ (วินาที):"));
-      const name = document.getElementById('userNameDisplay').textContent;
-      
-      if (isNaN(score) || isNaN(timeTakenSeconds)) {
-          alert('ข้อมูลไม่ถูกต้อง');
-          return;
-      }
-      
-      const data = { score, timeTakenSeconds, name };
-      const result = await sendDataToGas('submitPostTest', data);
-      
-      if (result.status === 'success') {
-          alert(`บันทึกคะแนน Posttest สำเร็จ! อันดับของคุณ: #${result.userRank}`);
-          checkStatus(); // Refresh status and rank
-      } else {
-          alert('บันทึกคะแนนไม่สำเร็จ: ' + result.message);
-      }
-  }
+                // Load Status
+                await fetchUserStatus();
 
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Error', 'เกิดข้อผิดพลาดในการโหลด LIFF: ' + err.message, 'error');
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
 
-  // ********** Start Application **********
-  initializeLiff();
-</script>
+        // --- API CALLS ---
+        async function fetchUserStatus() {
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Default for GAS Web App calls from client
+                    // หมายเหตุ: no-cors จะอ่าน response ไม่ได้โดยตรงใน browser ปกติ 
+                    // แต่ถ้าใช้ redirect/proxy จะอ่านได้ ในที่นี้เราใช้ท่า standard ของ GAS + fetch 
+                    // ซึ่งมักจะมีปัญหาเรื่อง CORS ดังนั้นเราจะใช้ท่าส่ง text/json ปกติ
+                    // เพื่อแก้ปัญหา CORS เราต้องตั้งค่าใน GAS ให้ return ContentService และใช้ redirect: 'follow'
+                    // และใน Client ต้องใช้ POST พร้อม payload
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'getStatus', userId: userProfile.userId })
+                });
+                
+                // เนื่องจาก fetch no-cors ไม่ return json, เราต้องใช้ท่า redirect
+                // แก้ไข: ใช้ fetch แบบปกติ (cors) เพราะเราตั้งค่า GAS เป็น text/json แล้ว
+                // แต่วิธีที่ชัวร์ที่สุดกับ GAS คือใช้ POST data stringify
+            
+                // ลองเรียกแบบรอ Response (ถ้า GAS deploy ถูกต้องจะ return JSON ได้)
+                const text = await response.text(); 
+                let json;
+                try {
+                     json = JSON.parse(text);
+                } catch(e) {
+                    // Fallback or retry logic if needed. 
+                    // For now, assuming standard GAS web app behavior.
+                    // ถ้าพังที่ CORS ให้เช็ค Deployment
+                }
+
+                // *Hack Fix*: ถ้าติด CORS จริงๆ และอ่านค่าไม่ได้ เราอาจต้องใช้ library เสริม
+                // แต่ในกรณีนี้เราจะ assume ว่า GAS return JSON และ browser ยอมอ่าน (deploy as anyone)
+                // ถ้าใช้ fetch ปกติกับ GAS อาจเจอ redirect 302
+                
+                // เพื่อความชัวร์ เปลี่ยนวิธี fetch เป็นแบบนี้
+                const finalRes = await fetch(GAS_URL, {
+                     redirect: "follow",
+                     method: "POST",
+                     headers: { "Content-Type": "text/plain;charset=utf-8" },
+                     body: JSON.stringify({ action: 'getStatus', userId: userProfile.userId })
+                }).then(r => r.json());
+
+                if (finalRes.status === 'success') {
+                    userMissionStatus = finalRes.data.missions;
+                    renderStamps();
+                }
+
+            } catch (error) {
+                console.error('Fetch Error:', error);
+                // Render default grey stamps if error or first time
+                renderStamps();
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
+
+        async function submitRegistration() {
+            const form = document.getElementById('regis-form');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            document.getElementById('loading-overlay').style.display = 'flex';
+            
+            const formData = new FormData(form);
+            const payload = {
+                action: 'register',
+                userId: userProfile.userId,
+                displayName: userProfile.displayName,
+                pictureProfile: userProfile.pictureUrl,
+                title: formData.get('title'),
+                name: formData.get('name'),
+                age: formData.get('age'),
+                gender: formData.get('gender'),
+                dept: formData.get('dept')
+            };
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    redirect: "follow",
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify(payload)
+                }).then(r => r.json());
+
+                if (response.status === 'success') {
+                    userMissionStatus = response.data.missions;
+                    renderStamps();
+                    toggleModal('modal-regis');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ลงทะเบียนสำเร็จ!',
+                        text: 'คุณได้รับแสตมป์ดวงที่ 1 แล้ว',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire('Error', 'บันทึกไม่สำเร็จ: ' + response.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
+                console.error(error);
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        }
+
+        // --- UI FUNCTIONS ---
+        function renderStamps() {
+            const grid = document.getElementById('stamp-grid');
+            grid.innerHTML = '';
+
+            missions.forEach((mission, index) => {
+                const isCompleted = userMissionStatus[index] == 1;
+                const imgUrl = isCompleted ? mission.color : mission.grey;
+                
+                const div = document.createElement('div');
+                div.className = 'aspect-square relative rounded-lg overflow-hidden shadow-sm transition-transform transform hover:scale-105';
+                
+                // Click Event for Mission 1
+                if (mission.id === 1 && !isCompleted) {
+                    div.style.cursor = 'pointer';
+                    div.onclick = () => toggleModal('modal-regis');
+                } else if (mission.id === 1 && isCompleted) {
+                    div.onclick = () => Swal.fire('ข้อมูล', 'คุณลงทะเบียนเรียบร้อยแล้ว', 'info');
+                }
+
+                // HTML Structure
+                div.innerHTML = `
+                    <img src="${imgUrl}" class="w-full h-full object-cover" alt="Mission ${mission.id}">
+                    ${isCompleted ? '<div class="absolute bottom-1 right-1 bg-green-500 text-white text-xs rounded-full p-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg></div>' : ''}
+                `;
+                
+                grid.appendChild(div);
+            });
+        }
+
+        function toggleModal(modalID) {
+            const modal = document.getElementById(modalID);
+            modal.classList.toggle('opacity-0');
+            modal.classList.toggle('pointer-events-none');
+            document.body.classList.toggle('modal-active');
+        }
+
+        // Start App
+        main();
+
+    </script>
 </body>
 </html>
