@@ -365,14 +365,16 @@
             showLoading(true, "กำลังบันทึก...");
             try {
                 const d = await callGAS({ action: 'completeMission', userId: userProfile.userId, missionId: mid });
+                showLoading(false); // Stop loading immediately after response
                 if (d.status === 'success') {
                     userMissionStatus = d.data.missions;
                     renderStamps(false);
                     checkCertificateStatus();
-                    showLoading(false);
                     playSuccessSound(); 
                     Swal.fire({icon: 'success', title: 'สำเร็จ!', background: '#111', color: '#fff', timer: 1500, showConfirmButton: false});
                     closeAllModals();
+                } else {
+                    Swal.fire({icon: 'error', title: 'Error', text: d.message, background: '#111', color: '#fff'});
                 }
             } catch (e) { showLoading(false); Swal.fire('Error', 'Save failed', 'error'); }
         }
@@ -454,16 +456,11 @@
             if (id === 1) openRegisModal();
             else if (id === 2) {
                 if(userMissionStatus[0] == 1) {
-                    if(!isCompleted) {
-                        openQuizModal('Pretest'); 
-                    } else {
-                         // Re-click logic for Pretest
-                         if (quizScores.pre) {
-                             if (!quizQuestions.length) await loadQuestions(); // Ensure questions to map modules
-                             showPretestFeedback(quizScores.pre.score, quizScores.pre.wrong);
-                         } else {
-                             Swal.fire({title:'Pre-test Complete', icon:'info', background:'#111', color:'#fff'});
-                         }
+                    if(!isCompleted) openQuizModal('Pretest'); 
+                    else {
+                         let msg = 'ทำแบบทดสอบแล้ว';
+                         if(quizScores.pre) msg = `คะแนน: ${quizScores.pre.score}/20`;
+                         Swal.fire({title:'Pre-test Complete', text: msg, icon:'info', background:'#111', color:'#fff', confirmButtonColor:'#00FFFF', confirmButtonText:'ตกลง'});
                     }
                 }
                 else showLockAlert(1);
@@ -561,15 +558,14 @@
             openModal('แบบประเมิน', tpl);
         }
 
-        async function loadQuestions() {
-            let d = await callGAS({ action: 'getQuestions' });
-            if(d.status === 'success') quizQuestions = d.data;
-        }
-
         async function openQuizModal(type) {
             currentTestType = type;
             showLoading(true, "LOADING QUIZ...");
-            if (quizQuestions.length === 0) await loadQuestions();
+            if (quizQuestions.length === 0) {
+                let d = await callGAS({ action: 'getQuestions' });
+                if(d.status === 'success') quizQuestions = d.data;
+                else { showLoading(false); Swal.fire('Error', 'Load failed', 'error'); return; }
+            }
             showLoading(false);
             const modal = document.getElementById('modal-template');
             document.getElementById('modal-title').innerText = type === 'Pretest' ? 'Pre-test' : 'Post-test';
@@ -617,13 +613,13 @@
                 title:fd.get('title'), name:fd.get('name'), age:fd.get('age'), gender:fd.get('gender'), dept:fd.get('dept'), round:fd.get('round')
             };
             const d = await callGAS(pl);
+            showLoading(false); // Stop loading here
             if(d.status==='success') {
                 userData = pl; userMissionStatus = d.data.missions; 
-                updateProfileUI(); renderStamps(false); closeAllModals(); showLoading(false);
+                updateProfileUI(); renderStamps(false); closeAllModals(); 
                 playSuccessSound();
                 Swal.fire({icon:'success', title:'บันทึกเรียบร้อย', background:'#111', color:'#fff', confirmButtonColor:'#39FF14', confirmButtonText:'ตกลง'});
             } else {
-                 showLoading(false);
                  Swal.fire({icon:'error', title:'Error', text: d.message, background:'#111', color:'#fff'});
             }
         }
@@ -648,12 +644,12 @@
                 round:userData.round || "N/A", type:currentTestType, score:score, duration_sec:dur, wrong_answer:wrong.join(',')
             };
             const d = await callGAS(pl);
+            showLoading(false); // Stop loading here
             
             if(d.status==='success') {
                 userMissionStatus=d.data.missions; 
                 quizScores = d.data.scores;
                 renderStamps(false);
-                showLoading(false);
                 playSuccessSound();
                 if(currentTestType==='Pretest') {
                     closeAllModals();
@@ -661,6 +657,8 @@
                 } else {
                     showTestResult(score, dur);
                 }
+            } else {
+                Swal.fire({icon: 'error', title: 'Error', text: d.message, background: '#111', color: '#fff'});
             }
         }
 
@@ -734,10 +732,13 @@
             for(let i=1;i<=10;i++) pl[`q${i}`]=fd.get(`q${i}`);
             
             const d=await callGAS(pl);
+            showLoading(false); // Stop loading here
             if(d.status==='success') {
-                userMissionStatus=d.data.missions; renderStamps(false); checkCertificateStatus(); closeAllModals(); showLoading(false);
+                userMissionStatus=d.data.missions; renderStamps(false); checkCertificateStatus(); closeAllModals(); 
                 playSuccessSound();
                 Swal.fire({icon:'success', title:'ขอบคุณครับ', background:'#111', color:'#fff', confirmButtonColor:'#39FF14'});
+            } else {
+                Swal.fire({icon: 'error', title: 'Error', text: d.message, background: '#111', color: '#fff'});
             }
         }
 
