@@ -505,28 +505,60 @@
                     if(!isCompleted) openQuizModal('Pretest'); 
                     else {
                          let msg = 'ทำแบบทดสอบแล้ว';
-                         if(quizScores.pre) msg = `คะแนน: ${quizScores.pre.score}/20`;
+                         if(quizScores.pre) msg = `คะแนน: ${quizScores.pre.score}/15`;
                          Swal.fire({title:'Pre-test Complete', text: msg, icon:'info', background:'#111', color:'#fff', confirmButtonColor:'#00FFFF', confirmButtonText:'ตกลง'});
                     }
                 }
                 else showLockAlert(1);
             }
-            else if (id === 3) { // Hand Hygiene
-                if(!isCompleted) openQRModal();
-                else Swal.fire({title:'ภารกิจสำเร็จแล้ว', icon:'success', background:'#111', color:'#fff', timer:1000, showConfirmButton:false});
-            }
-            else if (id === 4) { // PPE (New Logic)
-                // Check if we have group score data
-                const d = await callGAS({action:'getGroupScore', userId: userProfile.userId}); // Fetch latest status
-                if(d.status === 'success' && d.data.groupScore) {
-                   openScoreModal(d.data.groupScore);
+            else if (id === 3) { // Hand Hygiene (Updated)
+                if(!isCompleted) {
+                    Swal.fire({
+                        title: 'ฐานล้างมือ (Hand Hygiene)',
+                        text: 'Scan QR Code ที่ฐานล้างมือ หรือกดปุ่มด้านล่างเพื่อยืนยัน (ยืนยันผ่านการล้างมือ)',
+                        icon: 'info',
+                        showCancelButton: true,
+                        confirmButtonText: 'กดที่นี่ (ยืนยันผ่านการล้างมือ)',
+                        cancelButtonText: 'ปิด',
+                        confirmButtonColor: '#39FF14',
+                        background: '#111', color: '#fff'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            markMissionComplete(3);
+                        }
+                    });
                 } else {
-                   Swal.fire({
-                       icon: 'info', title: 'รอผลคะแนน', 
-                       text: 'ยังไม่มีคะแนนสำหรับกลุ่มของคุณในขณะนี้', 
-                       background: '#111', color: '#fff', 
-                       confirmButtonColor: '#00FFFF', confirmButtonText: 'ตกลง'
-                   });
+                    Swal.fire({title:'ภารกิจสำเร็จแล้ว', icon:'success', background:'#111', color:'#fff', timer:1000, showConfirmButton:false});
+                }
+            }
+            else if (id === 4) { // PPE (Updated)
+                // Check if we have group score data
+                showLoading(true, "Checking Score...");
+                const d = await callGAS({action:'getGroupScore', userId: userProfile.userId}); // Fetch latest status
+                showLoading(false);
+                
+                if(d.status === 'success') {
+                    // Update userData with potentially new group info
+                    if(d.data.userInfo) userData = {...userData, ...d.data.userInfo};
+                    updateProfileUI();
+
+                    if(d.data.groupScore) {
+                        openScoreModal(d.data.groupScore);
+                    } else {
+                        // Not Scored Yet
+                        let groupInfo = "กำลังตรวจสอบ...";
+                        if(userData.round && userData.group) {
+                            groupInfo = `รุ่น ${userData.round} <br> <span class="text-neon-pink text-2xl">Group ${userData.group}</span>`;
+                        }
+                        
+                        Swal.fire({
+                            title: 'รอผลคะแนน PPE',
+                            html: `<div class="text-lg">คุณอยู่กลุ่มที่</div><div class="my-4 font-bold text-white text-xl">${groupInfo}</div><div class="mt-2 text-gray-400">กรุณารอเจ้าหน้าที่บันทึกคะแนนเพื่อผ่านภารกิจ</div>`,
+                            icon: 'info',
+                            background: '#111', color: '#fff',
+                            confirmButtonColor: '#00FFFF', confirmButtonText: 'ตกลง'
+                        });
+                    }
                 }
             }
             else if (id === 5) {
