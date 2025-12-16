@@ -139,7 +139,10 @@
                      <img id="user-img" src="" class="w-14 h-14 rounded-full border-2 border-neon-teal shadow-neon-teal object-cover flex-shrink-0">
                      <div class="flex-grow min-w-0">
                          <span id="user-name" class="font-bold text-lg text-white block leading-tight truncate">User</span>
-                         <span id="user-dept" class="text-xs text-neon-green font-light truncate block mt-1">กำลังโหลด...</span>
+                         <div class="flex gap-2">
+                            <span id="user-dept" class="text-xs text-neon-green font-light truncate block mt-1">กำลังโหลด...</span>
+                            <span id="user-group-badge" class="text-xs bg-neon-pink text-white px-2 py-0.5 rounded-full mt-1 hidden font-bold shadow-[0_0_5px_#FF00FF]">Group ?</span>
+                         </div>
                      </div>
                 </div>
             </div>
@@ -239,6 +242,42 @@
                      <div id="rank-display" class="text-8xl font-bold text-neon-pink text-glow-strong">?</div>
                      <p class="text-sm text-gray-400">จากผู้เข้าสอบ <span id="total-participants" class="text-white font-bold">...</span> คน (รุ่นเดียวกัน)</p>
                      <p class="text-xs text-neon-yellow mt-2 animate-pulse">*อันดับอาจเปลี่ยนแปลงได้จนกว่าจะสอบครบทุกคน</p>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="score-modal-template">
+        <div class="text-center space-y-6">
+            <div class="bg-gray-800 p-6 rounded-xl border border-neon-pink shadow-[0_0_15px_#FF00FF]">
+                <h3 class="text-2xl font-bold text-neon-pink mb-2">กลุ่มของคุณ: <span id="score-group-name" class="text-white"></span></h3>
+                <div class="text-4xl font-bold text-white mt-4 flex justify-center items-baseline gap-2">
+                    <span class="text-lg text-gray-400">ลำดับที่</span>
+                    <span id="score-rank" class="text-neon-yellow text-6xl text-glow-strong">-</span>
+                    <span class="text-lg text-gray-400">จาก <span id="score-total-groups">-</span> กลุ่ม</span>
+                </div>
+            </div>
+            
+            <div class="space-y-3 text-left">
+                <div class="flex justify-between border-b border-gray-700 pb-2">
+                    <span class="text-gray-300">ความถูกต้องตามขั้นตอน</span>
+                    <span id="sc-correct" class="font-bold text-white">-</span>
+                </div>
+                <div class="flex justify-between border-b border-gray-700 pb-2">
+                    <span class="text-gray-300">ความปลอดภัย</span>
+                    <span id="sc-safety" class="font-bold text-white">-</span>
+                </div>
+                <div class="flex justify-between border-b border-gray-700 pb-2">
+                    <span class="text-gray-300">ความรวดเร็วเหมาะสม</span>
+                    <span id="sc-speed" class="font-bold text-white">-</span>
+                </div>
+                <div class="flex justify-between border-b border-gray-700 pb-2">
+                    <span class="text-gray-300">ความเรียบร้อยภาพลักษณ์</span>
+                    <span id="sc-neatness" class="font-bold text-white">-</span>
+                </div>
+                <div class="flex justify-between bg-gray-800 p-2 rounded mt-2">
+                    <span class="text-neon-teal font-bold">คะแนนรวม (Summary)</span>
+                    <span id="sc-summary" class="font-bold text-neon-teal text-xl">-</span>
                 </div>
             </div>
         </div>
@@ -425,11 +464,18 @@
             const nameEl = document.getElementById('user-name');
             const deptEl = document.getElementById('user-dept');
             const infoEl = document.getElementById('user-info');
+            const groupBadge = document.getElementById('user-group-badge');
             
             if (imgEl && nameEl && deptEl && infoEl) {
                 imgEl.src = userProfile.pictureUrl;
                 nameEl.innerText = (userData.name && userData.title) ? `${userData.title}${userData.name}` : userProfile.displayName;
                 deptEl.innerText = userData.dept || "กรุณาลงทะเบียน";
+                
+                if(userData.group) {
+                   groupBadge.innerText = `Group ${userData.group}`;
+                   groupBadge.classList.remove('hidden');
+                }
+
                 infoEl.classList.remove('hidden');
             }
         }
@@ -465,9 +511,23 @@
                 }
                 else showLockAlert(1);
             }
-            else if (id === 3 || id === 4) {
+            else if (id === 3) { // Hand Hygiene
                 if(!isCompleted) openQRModal();
                 else Swal.fire({title:'ภารกิจสำเร็จแล้ว', icon:'success', background:'#111', color:'#fff', timer:1000, showConfirmButton:false});
+            }
+            else if (id === 4) { // PPE (New Logic)
+                // Check if we have group score data
+                const d = await callGAS({action:'getGroupScore', userId: userProfile.userId}); // Fetch latest status
+                if(d.status === 'success' && d.data.groupScore) {
+                   openScoreModal(d.data.groupScore);
+                } else {
+                   Swal.fire({
+                       icon: 'info', title: 'รอผลคะแนน', 
+                       text: 'ยังไม่มีคะแนนสำหรับกลุ่มของคุณในขณะนี้', 
+                       background: '#111', color: '#fff', 
+                       confirmButtonColor: '#00FFFF', confirmButtonText: 'ตกลง'
+                   });
+                }
             }
             else if (id === 5) {
                 if(userMissionStatus[1] == 1) { 
@@ -488,6 +548,21 @@
                 if(!isCompleted) openEvalModal();
                 else Swal.fire({title:'ประเมินแล้ว', icon:'success', background:'#111', color:'#fff', timer:1000});
             }
+        }
+
+        function openScoreModal(scoreData) {
+            const tpl = document.getElementById('score-modal-template').content.cloneNode(true);
+            tpl.querySelector('#score-group-name').innerText = userData.group || "?";
+            tpl.querySelector('#score-rank').innerText = scoreData.rank;
+            tpl.querySelector('#score-total-groups').innerText = scoreData.totalGroups;
+            
+            tpl.querySelector('#sc-correct').innerText = scoreData.correctness;
+            tpl.querySelector('#sc-safety').innerText = scoreData.safety;
+            tpl.querySelector('#sc-speed').innerText = scoreData.speed;
+            tpl.querySelector('#sc-neatness').innerText = scoreData.neatness;
+            tpl.querySelector('#sc-summary').innerText = scoreData.summary;
+
+            openModal('ผลคะแนน PPE', tpl);
         }
 
         function showLockAlert(req) { Swal.fire({icon:'warning', title:'Locked', text:`กรุณาทำภารกิจที่ ${req} ให้เสร็จก่อน`, background:'#111', color:'#fff', confirmButtonColor:'#00FFFF'}); }
